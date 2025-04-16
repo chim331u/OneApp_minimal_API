@@ -25,11 +25,11 @@
 
     <ItemGroup>
       <Folder Include="Configurations\" />
-      <Folder Include="Contracts\" />
       <Folder Include="Endpoints\" />
       <Folder Include="Exceptions\" />
       <Folder Include="Interfaces\" />
       <Folder Include="Services\" />
+      <Folder Include="Temp\" />
     </ItemGroup>
 
 </Project>
