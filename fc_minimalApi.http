@@ -1,0 +1,6 @@
+@fc_minimalApi_HostAddress = http://localhost:5036
+
+GET {{fc_minimalApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
