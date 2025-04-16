@@ -7,7 +7,7 @@ namespace fc_minimalApi.AppContext
     {
 
         // Default schema for the database context
-        private const string DefaultSchema = "fc_minimalApi";
+        //private const string DefaultSchema = "fc_minimalApi";
 
         // DbSet to represent the collection of books in our database
         public DbSet<FilesDetail> FilesDetail { get; set; }
@@ -17,7 +17,7 @@ namespace fc_minimalApi.AppContext
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.HasDefaultSchema(DefaultSchema);
+            //modelBuilder.HasDefaultSchema(DefaultSchema);
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationContext).Assembly);
 
