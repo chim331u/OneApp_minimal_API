@@ -6,4 +6,6 @@ public interface IFilesDetailService
 {
     Task<List<string?>> GetDbCategoryList();
     Task<IEnumerable<FilesDetailResponse>> GetFileList();
+    Task<FilesDetailResponse?> GetFilesDetailById(int id);
+    Task<FilesDetailResponse> AddFileDetailAsync(FilesDetailRequest filesDetailRequest);
 }
