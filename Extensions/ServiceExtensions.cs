@@ -1,5 +1,8 @@
 using System.Reflection;
 using fc_minimalApi.AppContext;
+using fc_minimalApi.Interfaces;
+using fc_minimalApi.Models;
+using fc_minimalApi.Services;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +23,11 @@ namespace fc_minimalApi.Extensions
 
             // Adding validators from the current assembly
             builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+            //Register services
+            builder.Services.AddScoped<IFilesDetailService, FilesDetailService>();
+            //builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails();
         }
     }
 }
