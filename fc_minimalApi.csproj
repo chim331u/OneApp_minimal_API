@@ -29,10 +29,7 @@
 
     <ItemGroup>
       <Folder Include="Configurations\" />
-      <Folder Include="Endpoints\" />
       <Folder Include="Exceptions\" />
-      <Folder Include="Interfaces\" />
-      <Folder Include="Services\" />
       <Folder Include="Temp\FCLog\" />
     </ItemGroup>
 

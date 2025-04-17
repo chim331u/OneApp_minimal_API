@@ -6,8 +6,8 @@ namespace fc_minimalApi.AppContext
     public class ApplicationContext(DbContextOptions<ApplicationContext> options) : DbContext(options)
     {
 
-        // Default schema for the database context
-        //private const string DefaultSchema = "fc_minimalApi";
+        // // Default schema for the database context
+        // private const string DefaultSchema = "fc_minimalApi";
 
         // DbSet to represent the collection of books in our database
         public DbSet<FilesDetail> FilesDetail { get; set; }
