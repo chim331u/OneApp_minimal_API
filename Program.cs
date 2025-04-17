@@ -29,6 +29,7 @@ var logger = new LoggerConfiguration()
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 
+//TODO add cors
 
 var app = builder.Build();
 

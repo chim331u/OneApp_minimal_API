@@ -8,11 +8,18 @@ namespace fc_minimalApi.Endpoints
         {
             // Define the endpoints
             
-            // Endpoint to get all filesDetail
-            app.MapGet("/filesDetail", async (IFilesDetailService filesDetailService) =>
+            // Endpoint to get list of categorites
+            app.MapGet("/CategoryList", async (IFilesDetailService filesDetailService) =>
             {
-                //var result = await bookService.GetBooksAsync();
-                return Results.Ok();
+                var result = await filesDetailService.GetDbCategoryList();
+                return Results.Ok(result);
+            });
+            
+            // Endpoint to get all filesDetail
+            app.MapGet("/filesDetailList", async (IFilesDetailService filesDetailService) =>
+            {
+                var result = await filesDetailService.GetFileList();
+                return Results.Ok(result);
             });
 
 
