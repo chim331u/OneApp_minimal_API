@@ -9,7 +9,7 @@ namespace fc_minimalApi.Endpoints
         {
             // Define the endpoints
             
-            // Endpoint to get list of categorites
+            // Endpoint to get a list of categorites
             app.MapGet("/CategoryList", async (IFilesDetailService filesDetailService) =>
             {
                 var result = await filesDetailService.GetDbCategoryList();
@@ -37,7 +37,35 @@ namespace fc_minimalApi.Endpoints
                 return Results.Created($"/GetFilesDetail/{result.Id}", result); 
             });
 
+            // Endpoint to updatte a filesDetail
+            app.MapPut("/UpdateFilesDetail/{id:int}", async (int id, FilesDetailUpdateRequest filesDetailUpdateRequest, IFilesDetailService filesDetailService) =>
+            {
+                var result = await filesDetailService.UpdateFilesDetailAsync(id, filesDetailUpdateRequest);
+                return result != null ? Results.Ok(result) : Results.NotFound();
+            });
+            
+            
+            // Endpoint to delete a filesDetail
+            app.MapDelete("/DeleteFilesDetail/{id:int}", async (int id, IFilesDetailService filesDetailService) =>
+            {
+                var result = await filesDetailService.DeleteFilesDetailAsync(id);
+                return result ? Results.NoContent() : Results.NotFound();
+            });
 
+            // Endpoint to get all filesDetail
+            app.MapGet("/GetLastViewList", async (IFilesDetailService filesDetailService) =>
+            {
+                var result = await filesDetailService.GetLastViewList();
+                return Results.Ok(result);
+            });
+            
+            // Endpoint to get all filesDetail
+            app.MapGet("/GetAllFiles/{cat}", async (string cat,IFilesDetailService filesDetailService) =>
+            {
+                var result = await filesDetailService.GetAllFiles(cat);
+                return Results.Ok(result);
+            });
+            
             return app;
         }
     }

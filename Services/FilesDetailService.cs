@@ -25,38 +25,7 @@ namespace fc_minimalApi.Services
             _context = context;
             _logger = logger;
         }
-
-
-        // /// <summary>
-        //       /// Get all books
-        //       /// </summary>
-        //       /// <returns>List of all books</returns>
-        //       public async Task<IEnumerable<BookResponse>> GetBooksAsync()
-        //       {
-        //           try
-        //           {
-        //               // Get all books from the database
-        //               var books = await _context.Books.ToListAsync();
-        //
-        //               // Return the details of all books
-        //               return books.Select(book => new BookResponse
-        //               {
-        //                   Id = book.Id,
-        //                   Title = book.Title,
-        //                   Author = book.Author,
-        //                   Description = book.Description,
-        //                   Category = book.Category,
-        //                   Language = book.Language,
-        //                   TotalPages = book.TotalPages
-        //               });
-        //           }
-        //           catch (Exception ex)
-        //           {
-        //               _logger.LogError($"Error retrieving books: {ex.Message}");
-        //               throw;
-        //           }
-        //       }
-
+        
         /// <summary>
         /// Get the list of Categories
         /// </summary>
@@ -76,6 +45,10 @@ namespace fc_minimalApi.Services
             }
         }
 
+        /// <summary>
+        /// Get the list of files
+        /// </summary>
+        /// <returns>List af all active files</returns>
         public async Task<IEnumerable<FilesDetailResponse>> GetFileList()
         {
             try
@@ -101,6 +74,39 @@ namespace fc_minimalApi.Services
             {
                 _logger.LogError(ex.Message);
                 return null;
+            }
+        }
+        /// <summary>
+        /// Get all files by category
+        /// </summary>
+        /// <param name="Category"></param>
+        /// <returns>All active files by category</returns>
+        public async Task<IEnumerable<FilesDetailResponse?>> GetAllFiles(string fileCategory)
+        {
+            try
+            {
+                var fileList = await _context.FilesDetail
+                    .Where(x => x.IsNotToMove == false && x.FileCategory == fileCategory)
+                    .OrderByDescending(x => x.Name)
+                    .ToListAsync();
+                
+                // Return the details of all files
+                return fileList.Select(fileDetailResposne => new FilesDetailResponse
+                {
+                    Id = fileDetailResposne.Id,
+                    Name = fileDetailResposne.Name,
+                    Path = fileDetailResposne.Path,
+                    FileCategory = fileDetailResposne.FileCategory,
+                    IsToCategorize = fileDetailResposne.IsToCategorize,
+                    IsNew = fileDetailResposne.IsNew,
+                    FileSize = fileDetailResposne.FileSize,
+                    IsNotToMove = fileDetailResposne.IsNotToMove
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error return file list for category {ex.Message}");
+                return null!;
             }
         }
 
@@ -142,7 +148,7 @@ namespace fc_minimalApi.Services
         /// </summary>
         /// <param name="FileDetatilRequest"></param>
         /// <returns>Details of the created book</returns>
-        public async Task<FilesDetailResponse> AddFileDetailAsync(FilesDetailRequest filesDetailRequest)
+        public async Task<FilesDetailResponse?> AddFileDetailAsync(FilesDetailRequest filesDetailRequest)
         {
             try
             {
@@ -172,6 +178,136 @@ namespace fc_minimalApi.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Error adding files detail: {ex.Message}");
+                return null!;
+            }
+        }
+
+        /// <summary>
+        /// Update an existing files detail
+        /// </summary>
+        /// <param name="id">ID of the files detail to be updated</param>
+        /// <param name="filesDetail">Updated files detail model</param>
+        /// <returns>Details of the updated files detail</returns>
+        public async Task<FilesDetailResponse?> UpdateFilesDetailAsync(int id, FilesDetailUpdateRequest filesDetail)
+        {
+            try
+            {
+                // Find the existing files detail by its ID
+                var existingFilesDetail = await _context.FilesDetail.FindAsync(id);
+                if (existingFilesDetail == null)
+                {
+                    _logger.LogWarning($"Files Detail with ID {id} not found.");
+                    return null;
+                }
+
+                // Update the files details
+                existingFilesDetail.FileCategory = filesDetail.FileCategory;
+
+                if (filesDetail.FileSize != null) existingFilesDetail.FileSize = filesDetail.FileSize;
+                if (filesDetail.IsNotToMove != null) existingFilesDetail.IsNotToMove = filesDetail.IsNotToMove;
+                if (filesDetail.IsToCategorize != null) existingFilesDetail.IsToCategorize = filesDetail.IsToCategorize;
+                if (filesDetail.FileCategory != null) existingFilesDetail.FileCategory = filesDetail.FileCategory;
+                if (filesDetail.IsNew != null) existingFilesDetail.IsNew = filesDetail.IsNew;
+                if (filesDetail.Name != null) existingFilesDetail.Name = filesDetail.Name;
+                if (filesDetail.Path != null) existingFilesDetail.Path = filesDetail.Path;
+                if (filesDetail.IsDeleted != null) existingFilesDetail.IsDeleted = filesDetail.IsDeleted;
+                if (filesDetail.LastUpdateFile != null) existingFilesDetail.LastUpdateFile = filesDetail.LastUpdateFile;
+                existingFilesDetail.LastUpdatedDate = DateTime.Now;
+
+
+                // Save the changes to the database
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Files Detail updated successfully.");
+
+                // Return the files details of the updated filesdetail
+                return new FilesDetailResponse
+                {
+                    Id = existingFilesDetail.Id,
+                    Name = existingFilesDetail.Name,
+                    Path = existingFilesDetail.Path,
+                    FileCategory = existingFilesDetail.FileCategory,
+                    IsToCategorize = existingFilesDetail.IsToCategorize,
+                    IsNew = existingFilesDetail.IsNew,
+                    FileSize = existingFilesDetail.FileSize,
+                    IsNotToMove = existingFilesDetail.IsNotToMove
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error updating files detail: {ex.Message}");
+                return null!;
+            }
+        }
+        
+        /// <summary>
+        /// Delete an existing files detail
+        /// </summary>
+        /// <param name="id">ID of the files detail to be deleted</param>
+        /// <returns>Details of the updated files detail</returns>
+        public async Task<bool> DeleteFilesDetailAsync(int id)
+        {
+            try
+            {
+                // Find the existing files detail by its ID
+                var existingFilesDetail = await _context.FilesDetail.FindAsync(id);
+                if (existingFilesDetail == null)
+                {
+                    _logger.LogWarning($"Files Detail with ID {id} not found.");
+                    return false;
+                }
+
+                // Update the files details
+                existingFilesDetail.IsActive = false;
+                existingFilesDetail.LastUpdatedDate = DateTime.Now;
+                
+                // Save the changes to the database
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Files Detail deleted successfully.");
+
+                // Return the files details of the deleted filesdetail
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deleting files detail: {ex.Message}");
+                return false!;
+            }
+        }
+        
+        /// <summary>
+        /// Get the last view list of files
+        /// </summary>
+        /// <returns>list of FilesDetail</returns>
+        public async Task<IEnumerable<FilesDetailResponse>> GetLastViewList()
+        {
+            try
+            {
+                var fileList = await _context.FilesDetail.Where(x => x.IsNotToMove == false).OrderBy(x => x.FileCategory).ThenByDescending(x => x.Name)
+                    .ToListAsync();
+
+                var query = fileList.OrderByDescending(x => x.Name)
+                    .GroupBy(x => x.FileCategory)
+                    .Select(x => x.FirstOrDefault())
+                    .OrderBy(x => x.FileCategory);
+
+
+                // Return the last view list of all files
+                return query.Select(fileDetailResposne => new FilesDetailResponse
+                {
+                    Id = fileDetailResposne.Id,
+                    Name = fileDetailResposne.Name,
+                    Path = fileDetailResposne.Path,
+                    FileCategory = fileDetailResposne.FileCategory,
+                    IsToCategorize = fileDetailResposne.IsToCategorize,
+                    IsNew = fileDetailResposne.IsNew,
+                    FileSize = fileDetailResposne.FileSize,
+                    IsNotToMove = fileDetailResposne.IsNotToMove
+                });
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
                 return null!;
             }
         }
