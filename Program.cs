@@ -60,4 +60,8 @@ app.MapGroup("/api/v1/")
     .WithTags(" Files Detail endpoints")
     .MapFilesDetailEndPoint();
 
+app.MapGroup("/api/v1/")
+    .WithTags(" Configs endpoints")
+    .MapConfigsEndPoint();
+
 app.Run();

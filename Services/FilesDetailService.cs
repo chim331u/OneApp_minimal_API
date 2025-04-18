@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace fc_minimalApi.Services
 {
     /// <summary>
-    /// Book Services
+    /// Files Detail Services
     /// </summary>
     public class FilesDetailService : IFilesDetailService
     {
@@ -216,6 +216,7 @@ namespace fc_minimalApi.Services
 
 
                 // Save the changes to the database
+                _context.FilesDetail.Update(existingFilesDetail);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Files Detail updated successfully.");
 
@@ -261,6 +262,7 @@ namespace fc_minimalApi.Services
                 existingFilesDetail.LastUpdatedDate = DateTime.Now;
                 
                 // Save the changes to the database
+                _context.FilesDetail.Update(existingFilesDetail);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Files Detail deleted successfully.");
 

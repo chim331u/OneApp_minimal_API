@@ -26,6 +26,7 @@ namespace fc_minimalApi.Extensions
 
             //Register services
             builder.Services.AddScoped<IFilesDetailService, FilesDetailService>();
+            builder.Services.AddScoped<IConfigsService, ConfigsService>();
             //builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.AddProblemDetails();
         }
