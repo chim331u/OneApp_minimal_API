@@ -247,7 +247,6 @@ namespace fc_minimalApi.Services
                     item.IsDeleted = false;
                     item.IsNew = true;
                     item.IsNotToMove = false;
-                    item.IsToCategorize = false;
                     item.LastUpdatedDate = DateTime.Now;
                     item.IsActive = true;
                     item.CreatedDate = DateTime.Now;

@@ -1,11 +1,9 @@
 ﻿using fc_minimalApi.AppContext;
-using fc_minimalApi.Configurations;
 using fc_minimalApi.Contracts.Enum;
 using fc_minimalApi.Contracts.FilesDetail;
 using fc_minimalApi.Interfaces;
 using fc_minimalApi.Models;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
 namespace fc_minimalApi.Services
 {
