@@ -13,8 +13,8 @@ namespace fc_minimalApi.Services
     {
         private readonly ApplicationContext _context; // Database context
         private readonly ILogger<FilesDetailService> _logger; // Logger for logging information and error
-        private readonly IMachineLearningService _machineLearningService;
         private readonly IUtilityServices _utilityServices;
+        private readonly IMachineLearningService _machineLearningService;
 
         // Constructor to initialize the database context and logger
         /// <summary>
@@ -22,12 +22,12 @@ namespace fc_minimalApi.Services
         /// </summary>
         /// <param name="context">Database context</param>
         /// <param name="logger">Logger for logging information and error</param>
-        public FilesDetailService(ApplicationContext context, ILogger<FilesDetailService> logger, IMachineLearningService serviceMachineLearning, IUtilityServices utilityServices)
+        public FilesDetailService(ApplicationContext context, ILogger<FilesDetailService> logger, IUtilityServices utilityServices, IMachineLearningService machineLearningService)
         {
-            _machineLearningService = serviceMachineLearning;
             _context = context;
             _logger = logger;
             _utilityServices = utilityServices;
+            _machineLearningService = machineLearningService;
         }
         
         /// <summary>

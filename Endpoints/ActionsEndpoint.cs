@@ -40,7 +40,7 @@ public static class ActionsEndpoint
         {
             string forceCategoryResult = await filesDetailService.ForceCategory();
             return Results.Ok(forceCategoryResult);
-
+        
         });
         
         // Endpoint to trian model

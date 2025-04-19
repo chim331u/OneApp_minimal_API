@@ -8,15 +8,13 @@ namespace fc_minimalApi.Services
     public class MachineLearningService : IMachineLearningService
     {
 
-        private readonly IFilesDetailService _serviceData;
         private ITransformer _trainedModel;
         private readonly ILogger<MachineLearningService> _logger;
         private readonly IConfigsService _configsService;
 
-        public MachineLearningService(ILogger<MachineLearningService> logger, IFilesDetailService serviceData, IConfigsService configsService)
+        public MachineLearningService(ILogger<MachineLearningService> logger, IConfigsService configsService)
         {
             _configsService = configsService;
-            _serviceData = serviceData;
             _logger = logger;
         }
 
