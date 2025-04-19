@@ -18,6 +18,7 @@ public interface IFilesDetailService
     Task<IEnumerable<FilesDetailResponse?>> GetAllFiles(string fileCategory);
     Task<IEnumerable<FilesDetailResponse?>> GetLastViewList();
 
+    Task<string?> ForceCategory();
     Task<bool> FileNameIsPresent(string fileName);
 
 }

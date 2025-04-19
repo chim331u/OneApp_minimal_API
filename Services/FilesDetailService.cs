@@ -13,6 +13,8 @@ namespace fc_minimalApi.Services
     {
         private readonly ApplicationContext _context; // Database context
         private readonly ILogger<FilesDetailService> _logger; // Logger for logging information and error
+        private readonly IMachineLearningService _machineLearningService;
+        private readonly IUtilityServices _utilityServices;
 
         // Constructor to initialize the database context and logger
         /// <summary>
@@ -20,10 +22,12 @@ namespace fc_minimalApi.Services
         /// </summary>
         /// <param name="context">Database context</param>
         /// <param name="logger">Logger for logging information and error</param>
-        public FilesDetailService(ApplicationContext context, ILogger<FilesDetailService> logger)
+        public FilesDetailService(ApplicationContext context, ILogger<FilesDetailService> logger, IMachineLearningService serviceMachineLearning, IUtilityServices utilityServices)
         {
+            _machineLearningService = serviceMachineLearning;
             _context = context;
             _logger = logger;
+            _utilityServices = utilityServices;
         }
         
         /// <summary>
@@ -172,6 +176,25 @@ namespace fc_minimalApi.Services
             }
         }
         
+        public async Task<IEnumerable<FilesDetail>> GetFileListModelToCategorize()
+        {
+            try
+            {
+                var filesDetail =await _context.FilesDetail.OrderBy(x => x.Name).Where(x => x.IsActive && x.IsToCategorize)
+                    .ToListAsync();
+
+                // Return the details of the filesDetail
+                // Return the details of all files
+                return filesDetail;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+
+                return null;
+            }
+        }
+        
         /// <summary>
         /// Add new File detail
         /// </summary>
@@ -301,6 +324,25 @@ namespace fc_minimalApi.Services
             }
         }
         
+        public async Task UpdateFileDetailList(List<FilesDetail> fileDetail)
+        {
+            try
+            {
+                foreach (var item in fileDetail)
+                {
+                    item.LastUpdatedDate = DateTime.Now;
+                    _context.FilesDetail.Update(item);
+                }
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Files updated");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+
+            }
+
+        }
               
         public async Task<FilesDetail?> UpdateFilesDetail(FilesDetail filesDetail)
         {
@@ -405,7 +447,42 @@ namespace fc_minimalApi.Services
                 return null!;
             }
         }
-        
+
+        public async Task<string?> ForceCategory()
+        {
+            _logger.LogInformation("Categorizing file ...");
+
+            try
+            {
+                var _filesToCategorize = (await GetFileListModelToCategorize()).ToList();
+
+                if (_filesToCategorize != null && _filesToCategorize.Count > 0)
+                {
+                    //calculate category
+                    _logger.LogInformation("Start Prediction process");
+                    var _categorizationStartTime = DateTime.Now;
+                    var _categorizedFiles = _machineLearningService.PredictFileCategorization(_filesToCategorize);
+
+                    _logger.LogInformation($"End Prediction process: [{_utilityServices.TimeDiff(_categorizationStartTime, DateTime.Now)}]");
+
+                    //add to db
+                    _logger.LogInformation("Start add process");
+                    var _addStartTime = DateTime.Now;
+                    await UpdateFileDetailList(_categorizedFiles);
+
+                    _logger.LogInformation($"End adding process: [{_utilityServices.TimeDiff(_addStartTime, DateTime.Now)}]");
+                }
+
+                _logger.LogInformation("DB Updated: All File categorized.");
+                return "DB Updated: All File categorized.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error force category: {ex.Message}");
+                return $"Error force category: {ex.Message}";
+            }
+          
+        }
         public async Task<bool> FileNameIsPresent(string fileName)
         {
             try

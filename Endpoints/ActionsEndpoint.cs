@@ -35,6 +35,21 @@ public static class ActionsEndpoint
             return Results.Ok(jobId);
         });
         
+        // Endpoint to force category
+        app.MapPost("/ForceCategory", async ( IFilesDetailService filesDetailService) =>
+        {
+            string forceCategoryResult = await filesDetailService.ForceCategory();
+            return Results.Ok(forceCategoryResult);
+
+        });
+        
+        // Endpoint to trian model
+        app.MapPost("/TrainModel", async ( IMachineLearningService machineLearningService) =>
+        {
+            string trainModelResult = machineLearningService.TrainAndSaveModel();
+            return Results.Ok(trainModelResult);
+        });
+        
         return app;
     }
 }
