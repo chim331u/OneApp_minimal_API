@@ -29,6 +29,13 @@ namespace fc_minimalApi.Endpoints
                 var result = await filesDetailService.GetFilesDetailById(id);
                 return result != null ? Results.Ok(result) : Results.NotFound();
             });
+
+            app.MapGet("/GetFileToMove", async (IFilesDetailService filesDetailService) =>
+                {
+                    var result = await filesDetailService.GetFileListToCategorize();
+                    return result != null ? Results.Ok(result) : Results.NotFound();
+                }
+            );
             
             // Endpoint to add a new filesDetail
             app.MapPost("/AddFilesDetail", async (FilesDetailRequest filesDetailRequest, IFilesDetailService filesDetailService) =>

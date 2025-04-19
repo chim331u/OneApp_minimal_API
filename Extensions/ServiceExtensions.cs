@@ -1,5 +1,6 @@
 using System.Reflection;
 using fc_minimalApi.AppContext;
+using fc_minimalApi.Exceptions;
 using fc_minimalApi.Interfaces;
 using fc_minimalApi.Models;
 using fc_minimalApi.Services;
@@ -27,7 +28,10 @@ namespace fc_minimalApi.Extensions
             //Register services
             builder.Services.AddScoped<IFilesDetailService, FilesDetailService>();
             builder.Services.AddScoped<IConfigsService, ConfigsService>();
-            //builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddScoped<IUtilityServices, UtilityServices>();
+            builder.Services.AddScoped<IHangFireJobService, HangFireJobService>();
+            builder.Services.AddScoped<IMachineLearningService, MachineLearningService>();
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.AddProblemDetails();
         }
     }

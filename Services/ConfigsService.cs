@@ -33,7 +33,7 @@ public class ConfigsService:IConfigsService
         {
             try
             {
-                var configsList = await _context.Configs.AsNoTracking().OrderBy(x => x.Id)
+                var configsList = await _context.Configuration.AsNoTracking().OrderBy(x => x.Id)
                     .Where(x => x.IsActive && x.IsDev == _config.GetValue("IsDev", false))
                     .ToListAsync();
 
@@ -53,12 +53,27 @@ public class ConfigsService:IConfigsService
             }
         }
     
+        public async Task<string> GetConfigValue(string key)
+        {
+            try
+            {
+                var configValue = _context.Configuration
+                    .Single(x => x.IsActive && x.IsDev == _config.GetValue("IsDev", false) && x.Key == key).Value.ToString();
+
+                return configValue;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return null;
+            }
+        }
         public async Task<ConfigsDto?> GetConfig(int id)
         {
             try
             {
                 // Find the files config by its ID
-                var config = await _context.Configs.FindAsync(id);
+                var config = await _context.Configuration.FindAsync(id);
                 
                 if (config == null)
                 {
@@ -97,7 +112,7 @@ public class ConfigsService:IConfigsService
                 };
 
                 // Add the config to the database
-                _context.Configs.Add(_config);
+                _context.Configuration.Add(_config);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Config successfully.");
 
@@ -122,7 +137,7 @@ public class ConfigsService:IConfigsService
             try
             {
                 // Find the existing config by its ID
-                var existingConfig = await _context.Configs.FindAsync(id);
+                var existingConfig = await _context.Configuration.FindAsync(id);
                 if (existingConfig == null)
                 {
                     _logger.LogWarning($"Config with ID {id} not found.");
@@ -136,7 +151,7 @@ public class ConfigsService:IConfigsService
                 existingConfig.LastUpdatedDate = DateTime.Now;
                 
                 
-                _context.Configs.Update(existingConfig);
+                _context.Configuration.Update(existingConfig);
                 // Save the changes to the database
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Config updated successfully.");
@@ -164,7 +179,7 @@ public class ConfigsService:IConfigsService
             try
             {
                 // Find the existing config by its ID
-                var existingConfig = await _context.Configs.FindAsync(id);
+                var existingConfig = await _context.Configuration.FindAsync(id);
                 if (existingConfig == null)
                 {
                     _logger.LogWarning($"Config with ID {id} not found.");
@@ -176,7 +191,7 @@ public class ConfigsService:IConfigsService
                 existingConfig.LastUpdatedDate = DateTime.Now;
                 
                 // Save the changes to the database
-                _context.Configs.Update(existingConfig);
+                _context.Configuration.Update(existingConfig);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Config deleted successfully.");
                 

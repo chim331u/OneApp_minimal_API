@@ -143,6 +143,35 @@ namespace fc_minimalApi.Services
             }
         }
 
+        public async Task<IEnumerable<FilesDetailResponse>> GetFileListToCategorize()
+        {
+            try
+            {
+                var filesDetail =await _context.FilesDetail.OrderBy(x => x.Name).Where(x => x.IsActive && x.IsToCategorize)
+                    .ToListAsync();
+
+                // Return the details of the filesDetail
+                // Return the details of all files
+                return filesDetail.Select(fileDetailResposne => new FilesDetailResponse
+                {
+                    Id = fileDetailResposne.Id,
+                    Name = fileDetailResposne.Name,
+                    Path = fileDetailResposne.Path,
+                    FileCategory = fileDetailResposne.FileCategory,
+                    IsToCategorize = fileDetailResposne.IsToCategorize,
+                    IsNew = fileDetailResposne.IsNew,
+                    FileSize = fileDetailResposne.FileSize,
+                    IsNotToMove = fileDetailResposne.IsNotToMove
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+
+                return null;
+            }
+        }
+        
         /// <summary>
         /// Add new File detail
         /// </summary>
@@ -182,6 +211,38 @@ namespace fc_minimalApi.Services
             }
         }
 
+        public async Task<int> AddFileDetailList(List<FilesDetail> fileDetail)
+        {
+            try
+            {
+                int count = 0;
+                foreach (var item in fileDetail)
+                {
+
+                    item.CreatedDate = DateTime.Now;
+                    item.IsActive = true;
+                    item.IsDeleted = false;
+                    item.IsNew = true;
+                    item.IsNotToMove = false;
+                    item.IsToCategorize = false;
+                    item.LastUpdatedDate = DateTime.Now;
+                    item.IsActive = true;
+                    item.CreatedDate = DateTime.Now;
+                    
+                    var fileAdded = await _context.FilesDetail.AddAsync(item);
+                    count++;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return 0;
+            }
+        }
         /// <summary>
         /// Update an existing files detail
         /// </summary>
@@ -240,6 +301,37 @@ namespace fc_minimalApi.Services
             }
         }
         
+              
+        public async Task<FilesDetail?> UpdateFilesDetail(FilesDetail filesDetail)
+        {
+            try
+            {
+                // Find the existing files detail by its ID
+                var existingFilesDetail = await _context.FilesDetail.FindAsync(filesDetail.Id);
+                if (existingFilesDetail == null)
+                {
+                    _logger.LogWarning($"Files Detail with ID {filesDetail.Id} not found.");
+                    return null;
+                }
+
+                // Update the files details
+               filesDetail.LastUpdatedDate = DateTime.Now;
+
+
+                // Save the changes to the database
+                _context.FilesDetail.Update(filesDetail);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Files Detail updated successfully.");
+
+                // Return the files details of the updated filesdetail
+                return filesDetail;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error updating files detail: {ex.Message}");
+                return null!;
+            }
+        }
         /// <summary>
         /// Delete an existing files detail
         /// </summary>
@@ -311,6 +403,21 @@ namespace fc_minimalApi.Services
             {
                 _logger.LogError(ex.Message);
                 return null!;
+            }
+        }
+        
+        public async Task<bool> FileNameIsPresent(string fileName)
+        {
+            try
+            {
+                var fileDetailList = await _context.FilesDetail.Where(x => x.Name == fileName).AnyAsync();
+
+                return fileDetailList;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return false;
             }
         }
     }

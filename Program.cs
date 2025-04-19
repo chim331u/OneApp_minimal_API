@@ -1,6 +1,8 @@
 using System.Reflection;
 using fc_minimalApi.Endpoints;
 using fc_minimalApi.Extensions;
+using fc_minimalApi.Services;
+using Hangfire;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -11,6 +13,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddApplicationServices();
 
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSignalR();
+
+builder.Services.AddHangfire(config =>
+{
+    config.
+        UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UseInMemoryStorage();
+});
+builder.Services.AddHangfireServer(options => options.SchedulePollingInterval = TimeSpan.FromSeconds(1));
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1",
@@ -54,7 +68,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.MapHub<NotificationHub>("notifications");
 
 app.MapGroup("/api/v1/")
     .WithTags(" Files Detail endpoints")
@@ -63,5 +77,9 @@ app.MapGroup("/api/v1/")
 app.MapGroup("/api/v1/")
     .WithTags(" Configs endpoints")
     .MapConfigsEndPoint();
+
+app.MapGroup("/api/v1/")
+    .WithTags(" Actions endpoints")
+    .MapActionsEndPoint();
 
 app.Run();

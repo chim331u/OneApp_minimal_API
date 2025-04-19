@@ -11,7 +11,7 @@ namespace fc_minimalApi.AppContext
 
         // DbSet to represent the collection of books in our database
         public DbSet<FilesDetail> FilesDetail { get; set; }
-        public DbSet<Configs> Configs { get; set; }
+        public DbSet<Configs> Configuration { get; set; }
 
         // Constructor to configure the database context
 
