@@ -31,6 +31,7 @@ namespace fc_minimalApi.Extensions
             builder.Services.AddScoped<IUtilityServices, UtilityServices>();
             builder.Services.AddScoped<IHangFireJobService, HangFireJobService>();
             builder.Services.AddScoped<IMachineLearningService, MachineLearningService>();
+            builder.Services.AddScoped<IDDService, DDService>();
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.AddProblemDetails();
         }

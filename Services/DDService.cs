@@ -2,13 +2,14 @@ using System.Net;
 using System.Text.RegularExpressions;
 using fc_minimalApi.AppContext;
 using fc_minimalApi.Contracts.DD;
+using fc_minimalApi.Interfaces;
 using fc_minimalApi.Models;
 using Microsoft.EntityFrameworkCore;
 using HtmlAgilityPack;
 
 namespace fc_minimalApi.Services;
 
-public class DDService
+public class DDService : IDDService
 {
     private readonly ApplicationContext _context; // Database context
     private readonly ILogger<DDService> _logger; // Logger for logging information and error
