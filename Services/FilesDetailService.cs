@@ -16,12 +16,13 @@ namespace fc_minimalApi.Services
         private readonly IUtilityServices _utilityServices;
         private readonly IMachineLearningService _machineLearningService;
 
-        // Constructor to initialize the database context and logger
         /// <summary>
-        /// Entry point for Files Detail Service
+        /// Initializes a new instance of the <see cref="FilesDetailService"/> class.
         /// </summary>
-        /// <param name="context">Database context</param>
-        /// <param name="logger">Logger for logging information and error</param>
+        /// <param name="context">Database context.</param>
+        /// <param name="logger">Logger for logging information and errors.</param>
+        /// <param name="utilityServices">Utility services for additional operations.</param>
+        /// <param name="machineLearningService">Machine learning service for predictions.</param>
         public FilesDetailService(ApplicationContext context, ILogger<FilesDetailService> logger, IUtilityServices utilityServices, IMachineLearningService machineLearningService)
         {
             _context = context;
@@ -156,16 +157,16 @@ namespace fc_minimalApi.Services
 
                 // Return the details of the filesDetail
                 // Return the details of all files
-                return filesDetail.Select(fileDetailResposne => new FilesDetailResponse
+                return filesDetail.Select(fileDetailResponse => new FilesDetailResponse
                 {
-                    Id = fileDetailResposne.Id,
-                    Name = fileDetailResposne.Name,
-                    Path = fileDetailResposne.Path,
-                    FileCategory = fileDetailResposne.FileCategory,
-                    IsToCategorize = fileDetailResposne.IsToCategorize,
-                    IsNew = fileDetailResposne.IsNew,
-                    FileSize = fileDetailResposne.FileSize,
-                    IsNotToMove = fileDetailResposne.IsNotToMove
+                    Id = fileDetailResponse.Id,
+                    Name = fileDetailResponse.Name,
+                    Path = fileDetailResponse.Path,
+                    FileCategory = fileDetailResponse.FileCategory,
+                    IsToCategorize = fileDetailResponse.IsToCategorize,
+                    IsNew = fileDetailResponse.IsNew,
+                    FileSize = fileDetailResponse.FileSize,
+                    IsNotToMove = fileDetailResponse.IsNotToMove
                 });
             }
             catch (Exception ex)

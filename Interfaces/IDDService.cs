@@ -1,0 +1,15 @@
+using fc_minimalApi.Contracts.DD;
+
+namespace fc_minimalApi.Interfaces;
+
+public interface IDDService
+{
+    Task<string> GetLinks(string link);
+    Task<string> GetLinks(int threadId);
+    Task<string> UseLink(int linkId);
+    Task<List<ThreadsDto>> GetActiveThreads();
+    Task<List<Ed2kLinkDto>> GetActiveLinks(int threadId);
+}
+
+
+       
