@@ -89,4 +89,5 @@ app.MapGroup("/api/v1/")
 app.MapGroup("/api/v1/")
     .WithTags(" Utility endpoints")
     .MapUtilitiesEndPoint();
+
 app.Run();

@@ -6,7 +6,6 @@ using fc_minimalApi.Interfaces;
 using fc_minimalApi.Models;
 using Microsoft.EntityFrameworkCore;
 using HtmlAgilityPack;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace fc_minimalApi.Services
 {
@@ -145,8 +144,8 @@ namespace fc_minimalApi.Services
             //      LastUpdatedDate = DateTime.Now,
             //      Id = 1, Dd_User = "chim", Dd_Password = "aneurysm"
             //  };
-            //
-            //  _setting = await AddSetting(_setting);
+            
+             // _setting = await AddSetting(_setting);
 
             var link = await _context.DDThreads.Where(x => x.Id == threadId).Select(x => x.Url).FirstOrDefaultAsync();
 
@@ -257,11 +256,11 @@ namespace fc_minimalApi.Services
 
                 if (linkUpdated != null)
                 {
-                    return "ok";
+                    return link.Ed2kLink;
                 }
             }
 
-            return "error";
+            return string.Empty;
         }
 
         /// <summary>
