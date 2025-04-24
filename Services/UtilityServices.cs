@@ -6,12 +6,26 @@ namespace fc_minimalApi.Services
 {
     public class UtilityServices : IUtilityServices
     {
-        public string TimeDiff(DateTime start, DateTime end)
+        /// <summary>
+        /// Get the time difference between two DateTime objects    
+        /// /// </summary>
+        /// <param name="start">Start DateTime</param>  
+        /// <param name="end">End DateTime</param>
+        /// <returns>String with time difference in milliseconds</returns>
+        /// <remarks>Use this method to measure the time taken for a process</remarks>
+        public async Task<string> TimeDiff(DateTime start, DateTime end)
         {
             TimeSpan _span = end - start;
             return string.Concat(((int)_span.TotalMilliseconds).ToString(), " ms");
         }
-        public string EncryptString(string plainText)
+
+        /// <summary>
+        /// Crypt a string - Default key
+        /// </summary>
+        /// <param name="plainText">text to encrypt</param>
+        /// <returns>Encrypted string</returns>
+        /// <remarks>Use this method to encrypt a string</remarks>
+        public async Task<string> EncryptString(string plainText)
         {
             byte[] iv = new byte[16];
             byte[] array;
@@ -60,7 +74,14 @@ namespace fc_minimalApi.Services
             return Convert.ToBase64String(array);
         }
         
-        public string DecryptString(string cipherText)
+
+        /// <summary>
+        /// Decrypt a string - Default key
+        /// </summary>
+        /// <param name="cipherText"></param>
+        /// <returns>Decrypted string</returns>
+        /// <remarks>Use this method to decrypt a string</remarks>
+        public async Task<string> DecryptString(string cipherText)
         {
             byte[] iv = new byte[16];
             byte[] buffer = Convert.FromBase64String(cipherText);
@@ -102,6 +123,53 @@ namespace fc_minimalApi.Services
                 return e.Message;
             }
            
+        }
+
+
+/// <summary>
+/// Hash a string using SHA256
+/// </summary>
+/// <param name="input">string to hash</param>
+/// <returns>String with hash value in SHA256</returns>
+/// <remarks>Use this method to hash a string</remarks>
+        public async Task<string> HashString_SHA256(string input)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                // Convert the input string to a byte array and compute the hash.
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+
+                // Create a new Stringbuilder to collect the bytes and create a string.
+                StringBuilder builder = new StringBuilder();
+
+                // Loop through each byte of the hashed data
+                // and format each one as a hexadecimal string.
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+
+                return builder.ToString();
+            }
+        }
+
+
+/// <summary>
+/// Verify a hash using SHA256
+/// </summary>
+/// <param name="input">string to compare</param>
+/// <param name="hash">hash to campare</param>
+/// <returns>True id equals, else False</returns>
+/// <remarks>Use this method to verify a hash</remarks>
+        public async Task<bool> VerifyHash_SHA256(string input, string hash)
+        {
+            // Hash the input.
+            string hashOfInput = await HashString_SHA256(input);
+
+            // Create a StringComparer an compare the hashes.
+            StringComparer comparer = StringComparer.OrdinalIgnoreCase;           
+
+            return comparer.Compare(hashOfInput, hash) == 0;
         }
     }
 }

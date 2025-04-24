@@ -86,4 +86,7 @@ app.MapGroup("/api/v1/")
     .WithTags(" DD endpoints")
     .MapDDEndPoint();
 
+app.MapGroup("/api/v1/")
+    .WithTags(" Utility endpoints")
+    .MapUtilitiesEndPoint();
 app.Run();
