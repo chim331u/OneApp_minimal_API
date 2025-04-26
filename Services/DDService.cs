@@ -785,5 +785,37 @@ namespace fc_minimalApi.Services
 
             return null;
         }
+        
+        /// <summary>
+        /// Add new dd setting
+        /// </summary>
+        /// <param name="newSetting"></param>
+        /// <returns>setting added</returns>
+        public async Task<SettingDto> AddSetting(SettingDto newSetting)
+        {
+            try
+            {
+                var setting = new DD_Settings
+                {
+                    CreatedDate = DateTime.Now,
+                    IsActive = true,
+                    LastUpdatedDate = DateTime.Now,
+                    Dd_User = newSetting.Dd_User,
+                    Dd_Password = await _utility.EncryptString(newSetting.Dd_Password)
+                };
+               
+                    await _context.DDSettings.AddAsync(setting);
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Added new setting");
+                return newSetting;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return null!;
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System.Net;
+using fc_minimalApi.Contracts.DD;
 using fc_minimalApi.Interfaces;
 using Hangfire;
 using Microsoft.IdentityModel.Tokens;
@@ -76,15 +77,13 @@ public static class DDEndpoint
             return Results.Ok(result);
         });
         
-        // // Endpoint to update files from dir to db
-        // app.MapGet("/RefreshFiles", async (IHangFireJobService jobService) =>
-        // {
-        //     string jobId =
-        //         BackgroundJob.Enqueue<IHangFireJobService>(job =>
-        //             job.RefreshFiles(CancellationToken.None));
-        //     
-        //     return Results.Ok(jobId);
-        // });
+        // Endpoint to add new setting 
+        app.MapPut("/AddDDSetting", async (SettingDto newSettingDto, IDDService _ddService) =>
+        {
+           var result = await _ddService.AddSetting(newSettingDto);
+            
+            return Results.Ok(result);
+        });
         
         return app;
     }
