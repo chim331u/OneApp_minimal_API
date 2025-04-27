@@ -1,7 +1,7 @@
-using fc_minimalApi.Models;
 using Microsoft.EntityFrameworkCore;
+using OneApp_minimalApi.Models;
 
-namespace fc_minimalApi.AppContext
+namespace OneApp_minimalApi.AppContext
 { 
     /// <summary>
     /// Represents the database context for the application.
@@ -27,6 +27,9 @@ namespace fc_minimalApi.AppContext
         
         public DbSet<DD_LinkEd2k> DDLinkEd2 { get; set; }
         
+        public DbSet<DockerConfig> DockerConfig { get; set; }
+        public DbSet<DeployDetail> DeployDetails { get; set; }
+        
         /// <summary>
         /// Configures the model and relationships for the database context.
         /// </summary>
@@ -36,11 +39,15 @@ namespace fc_minimalApi.AppContext
             base.OnModelCreating(modelBuilder);
             //modelBuilder.HasDefaultSchema(DefaultSchema);
 
+            modelBuilder.Entity<DockerConfig>().ToTable("DD_ProjectDeployerConfig")
+                .HasMany(c => c.DeployDetails);
+            modelBuilder.Entity<DeployDetail>().ToTable("DD_DeployDetails");
+            
             // Apply configurations from the current assembly.
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationContext).Assembly);
 
-            // Apply configurations from the current assembly again (duplicate call, consider removing if unnecessary).
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationContext).Assembly);
+            // // Apply configurations from the current assembly again (duplicate call, consider removing if unnecessary).
+            // modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationContext).Assembly);
         }
     }
 }

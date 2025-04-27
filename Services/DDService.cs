@@ -1,13 +1,13 @@
 using System.Net;
 using System.Text.RegularExpressions;
-using fc_minimalApi.AppContext;
-using fc_minimalApi.Contracts.DD;
-using fc_minimalApi.Interfaces;
-using fc_minimalApi.Models;
 using Microsoft.EntityFrameworkCore;
 using HtmlAgilityPack;
+using OneApp_minimalApi.AppContext;
+using OneApp_minimalApi.Contracts.DD;
+using OneApp_minimalApi.Interfaces;
+using OneApp_minimalApi.Models;
 
-namespace fc_minimalApi.Services
+namespace OneApp_minimalApi.Services
 {
     /// <summary>
     /// Provides services for managing DD threads, links, and settings.

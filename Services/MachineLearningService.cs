@@ -1,9 +1,9 @@
-﻿using fc_minimalApi.Interfaces;
-using fc_minimalApi.Models;
-using fc_minimalApi.Models.MachineLearning;
-using Microsoft.ML;
+﻿using Microsoft.ML;
+using OneApp_minimalApi.Interfaces;
+using OneApp_minimalApi.Models;
+using OneApp_minimalApi.Models.MachineLearning;
 
-namespace fc_minimalApi.Services
+namespace OneApp_minimalApi.Services
 {
     public class MachineLearningService : IMachineLearningService
     {

@@ -1,10 +1,10 @@
-using fc_minimalApi.AppContext;
-using fc_minimalApi.Contracts.FilesDetail;
-using fc_minimalApi.Interfaces;
-using fc_minimalApi.Models;
 using Microsoft.EntityFrameworkCore;
+using OneApp_minimalApi.AppContext;
+using OneApp_minimalApi.Contracts.FilesDetail;
+using OneApp_minimalApi.Interfaces;
+using OneApp_minimalApi.Models;
 
-namespace fc_minimalApi.Services
+namespace OneApp_minimalApi.Services
 {
     /// <summary>
     /// Files Detail Services

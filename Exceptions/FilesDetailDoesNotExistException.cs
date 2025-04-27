@@ -1,4 +1,4 @@
-namespace fc_minimalApi.Exceptions;
+namespace OneApp_minimalApi.Exceptions;
 
 public class FilesDetailDoesNotExistException: Exception
 {

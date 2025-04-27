@@ -1,4 +1,4 @@
-namespace fc_minimalApi.Models
+namespace OneApp_minimalApi.Models
 {
     public abstract class BaseEntity
     {

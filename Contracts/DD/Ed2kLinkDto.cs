@@ -1,4 +1,4 @@
-namespace fc_minimalApi.Contracts.DD;
+namespace OneApp_minimalApi.Contracts.DD;
 
 public class Ed2kLinkDto
 {

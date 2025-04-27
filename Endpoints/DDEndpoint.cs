@@ -1,11 +1,11 @@
 using System.Net;
-using fc_minimalApi.Contracts.DD;
-using fc_minimalApi.Interfaces;
 using Hangfire;
 using Microsoft.IdentityModel.Tokens;
+using OneApp_minimalApi.Contracts.DD;
+using OneApp_minimalApi.Interfaces;
 
 
-namespace fc_minimalApi.Endpoints;
+namespace OneApp_minimalApi.Endpoints;
 
 public static class DDEndpoint
 {

@@ -1,4 +1,4 @@
-namespace fc_minimalApi.Contracts.Configs;
+namespace OneApp_minimalApi.Contracts.Configs;
 
 public class ConfigsDto
 {

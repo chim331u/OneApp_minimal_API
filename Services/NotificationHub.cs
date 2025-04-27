@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace fc_minimalApi.Services
+namespace OneApp_minimalApi.Services
 {
     public class NotificationHub : Hub
     {

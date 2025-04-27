@@ -1,4 +1,4 @@
-namespace fc_minimalApi.Contracts
+namespace OneApp_minimalApi.Contracts
 {
     public class ApiResponse<T>
     {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace fc_minimalApi.Models
+namespace OneApp_minimalApi.Models
 {
     public class Configs : BaseEntity
     {

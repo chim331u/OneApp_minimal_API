@@ -1,4 +1,4 @@
-﻿namespace fc_minimalApi.Interfaces
+﻿namespace OneApp_minimalApi.Interfaces
 {
     /// <summary>
     /// Defines utility services.

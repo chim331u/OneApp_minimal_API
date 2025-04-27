@@ -1,4 +1,4 @@
-﻿namespace fc_minimalApi.Contracts.Enum
+﻿namespace OneApp_minimalApi.Contracts.Enum
 {
     public enum MoveFilesResults
     {

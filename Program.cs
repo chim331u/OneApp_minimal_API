@@ -1,9 +1,11 @@
 using System.Reflection;
-using fc_minimalApi.Endpoints;
-using fc_minimalApi.Extensions;
-using fc_minimalApi.Services;
+using OneApp_minimalApi.Endpoints;
+using OneApp_minimalApi.Extensions;
+using OneApp_minimalApi.Services;
 using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using OneApp_minimalApi.AppContext;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,6 +60,13 @@ builder.Logging.AddSerilog(logger);
 
 var app = builder.Build();
 
+//Appy migrations on app start
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    db.Database.Migrate();
+}
+
 app.UseCors("CorsPolicy");
 
 // Configure the HTTP request pipeline.
@@ -89,5 +98,13 @@ app.MapGroup("/api/v1/")
 app.MapGroup("/api/v1/")
     .WithTags(" Utility endpoints")
     .MapUtilitiesEndPoint();
+
+app.MapGroup("/api/v1/")
+    .WithTags(" Docker Configurations endpoints")
+    .MapDockerConfigsEndPoint();
+
+app.MapGroup("/api/v1/")
+    .WithTags(" Deploy Detail endpoints")
+    .MapDeployDetailEndPoint();
 
 app.Run();

@@ -1,6 +1,6 @@
-using fc_minimalApi.Contracts.DD;
+using OneApp_minimalApi.Contracts.DD;
 
-namespace fc_minimalApi.Interfaces;
+namespace OneApp_minimalApi.Interfaces;
 
 public interface IDDService
 {

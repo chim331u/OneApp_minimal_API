@@ -1,8 +1,8 @@
-using fc_minimalApi.Contracts.FilesDetail;
-using fc_minimalApi.Interfaces;
 using Hangfire;
+using OneApp_minimalApi.Contracts.FilesDetail;
+using OneApp_minimalApi.Interfaces;
 
-namespace fc_minimalApi.Endpoints;
+namespace OneApp_minimalApi.Endpoints;
 
 public static class ActionsEndpoint
 {

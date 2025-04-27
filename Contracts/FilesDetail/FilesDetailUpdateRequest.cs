@@ -1,4 +1,4 @@
-namespace fc_minimalApi.Contracts.FilesDetail;
+namespace OneApp_minimalApi.Contracts.FilesDetail;
 
 public class FilesDetailUpdateRequest
 {

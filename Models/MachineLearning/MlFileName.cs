@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML.Data;
 
-namespace fc_minimalApi.Models.MachineLearning
+namespace OneApp_minimalApi.Models.MachineLearning
 {
     public class MlFileName
     {

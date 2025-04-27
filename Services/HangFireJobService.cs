@@ -1,11 +1,11 @@
-﻿using fc_minimalApi.AppContext;
-using fc_minimalApi.Contracts.Enum;
-using fc_minimalApi.Contracts.FilesDetail;
-using fc_minimalApi.Interfaces;
-using fc_minimalApi.Models;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
+using OneApp_minimalApi.AppContext;
+using OneApp_minimalApi.Contracts.Enum;
+using OneApp_minimalApi.Contracts.FilesDetail;
+using OneApp_minimalApi.Interfaces;
+using OneApp_minimalApi.Models;
 
-namespace fc_minimalApi.Services
+namespace OneApp_minimalApi.Services
 {
     public class HangFireJobService : IHangFireJobService
     {

@@ -1,7 +1,7 @@
-using fc_minimalApi.Contracts.Configs;
-using fc_minimalApi.Interfaces;
+using OneApp_minimalApi.Contracts.Configs;
+using OneApp_minimalApi.Interfaces;
 
-namespace fc_minimalApi.Endpoints;
+namespace OneApp_minimalApi.Endpoints;
 
 public static class ConfigsEndpoint
 {

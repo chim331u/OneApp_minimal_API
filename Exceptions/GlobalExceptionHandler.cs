@@ -1,8 +1,8 @@
 using System.Net;
-using fc_minimalApi.Contracts;
 using Microsoft.AspNetCore.Diagnostics;
+using OneApp_minimalApi.Contracts;
 
-namespace fc_minimalApi.Exceptions
+namespace OneApp_minimalApi.Exceptions
 {
 
    // Global exception handler class implementing IExceptionHandler
