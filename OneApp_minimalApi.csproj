@@ -37,6 +37,7 @@
     <ItemGroup>
       <Folder Include="Temp\Dest\" />
       <Folder Include="Temp\FCLog\" />
+      <Folder Include="Temp\OneAppLog\" />
       <Folder Include="Temp\Orig\" />
     </ItemGroup>
 
