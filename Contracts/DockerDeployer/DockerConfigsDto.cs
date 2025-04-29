@@ -43,5 +43,7 @@ public class DockerConfigsDto
     public string? RestoreProject { get; set; }
     public string? BuildProject { get; set; }
     public string? Branch { get; set; }
+    
+    public string? ImageVersion { get; set; }
     public string? Note { get; set; }
 }

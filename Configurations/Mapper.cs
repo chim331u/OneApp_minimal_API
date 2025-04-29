@@ -43,7 +43,7 @@ public static class Mapper
             SolutionFolder = dockerConfig.SolutionFolder,
             SolutionRepository = dockerConfig.SolutionRepository,
             User = dockerConfig.User,
-            Note = dockerConfig.Note,
+            Note = dockerConfig.Note, ImageVersion = dockerConfig.ImageVersion,
         };
     }
 
@@ -78,7 +78,8 @@ public static class Mapper
             SolutionFolder = dockerConfigsDto.SolutionFolder,
             SolutionRepository = dockerConfigsDto.SolutionRepository,
             User = dockerConfigsDto.User,
-            Note = dockerConfigsDto.Note
+            Note = dockerConfigsDto.Note,
+            ImageVersion = dockerConfigsDto.ImageVersion
         };
     }
 

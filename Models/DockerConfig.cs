@@ -58,6 +58,8 @@ namespace OneApp_minimalApi.Models
         public string? RestoreProject { get; set; }
         public string? BuildProject { get; set; }
         public string? Branch { get; set; }
+        
+        public string? ImageVersion { get; set; }
 
 
         public ICollection<DeployDetail>? DeployDetails { get; set; }

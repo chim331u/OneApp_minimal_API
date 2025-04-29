@@ -70,6 +70,12 @@ public class DockerConfigsService : IDockerConfigsService
         try
         {
             dockerConfigs.Password = await _utilityServices.EncryptString(dockerConfigs.Password);
+            
+            if (string.IsNullOrEmpty(dockerConfigs.ImageVersion))
+            {
+                dockerConfigs.ImageVersion = "1.0";
+            }
+            
             var _dockerConfig = Mapper.FromDockerConfigDtoToDockerModel(dockerConfigs);
 
             // Add the book to the database

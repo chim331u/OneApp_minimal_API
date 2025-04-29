@@ -107,4 +107,8 @@ app.MapGroup("/api/v1/")
     .WithTags(" Deploy Detail endpoints")
     .MapDeployDetailEndPoint();
 
+app.MapGroup("/api/v1/")
+    .WithTags(" Docker Command endpoints")
+    .MapDockerCommandEndPoint();
+
 app.Run();

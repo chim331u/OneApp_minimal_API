@@ -34,6 +34,7 @@ namespace OneApp_minimalApi.Extensions
             builder.Services.AddScoped<IDDService, DDService>();
             builder.Services.AddScoped<IDockerConfigsService, DockerConfigsService>();
             builder.Services.AddScoped<IDeployDetailService, DeployDetailService>();
+            builder.Services.AddScoped<IDockerCommandService, DockerCommandService>();
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.AddProblemDetails();
         }
