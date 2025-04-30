@@ -2,41 +2,105 @@ using OneApp_minimalApi.Interfaces;
 
 namespace OneApp_minimalApi.Endpoints;
 
+/// <summary>
+/// Provides extension methods to map Docker command-related endpoints.
+/// </summary>
 public static class DockerCommandEnpoint
 {
+    /// <summary>
+    /// Maps the Docker command-related endpoints to the specified <see cref="IEndpointRouteBuilder"/>.
+    /// </summary>
+    /// <param name="app">The <see cref="IEndpointRouteBuilder"/> to map the endpoints to.</param>
+    /// <returns>The <see cref="IEndpointRouteBuilder"/> with the mapped endpoints.</returns>
     public static IEndpointRouteBuilder MapDockerCommandEndPoint(this IEndpointRouteBuilder app)
     {
         // Define the endpoints
-        // Endpoint to send SSH command
+
+        /// <summary>
+        /// Endpoint to send an SSH command to a Docker container.
+        /// </summary>
+        /// <param name="id">The unique identifier of the Docker container.</param>
+        /// <param name="command">The SSH command to execute.</param>
+        /// <param name="_dockerCommandService">The service to process the command.</param>
         app.MapPost("/SendSSHCommand/{id:int}", async (int id, string command, IDockerCommandService _dockerCommandService) =>
         {
             var commandResult = await _dockerCommandService.SendSSHCommand(id, command);
-            
             return Results.Ok(commandResult);
         });
 
-        // Endpoint to send localhost command
+        /// <summary>
+        /// Endpoint to send a localhost command to a Docker container.
+        /// </summary>
+        /// <param name="id">The unique identifier of the Docker container.</param>
+        /// <param name="command">The localhost command to execute.</param>
+        /// <param name="_dockerCommandService">The service to process the command.</param>
         app.MapPost("/SendLocalhostCommand/{id:int}", async (int id, string command, IDockerCommandService _dockerCommandService) =>
         {
             var commandResult = await _dockerCommandService.SendLocalhostCommand(id, command);
-            
             return Results.Ok(commandResult);
         });
 
-        // Endpoint to create Docker file
-        app.MapPost("/CreateDockerFile/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        /// <summary>
+        /// Endpoint to create a Docker file for a specific container.
+        /// </summary>
+        /// <param name="id">The unique identifier of the Docker container.</param>
+        /// <param name="_dockerCommandService">The service to process the request.</param>
+        app.MapGet("/CreateDockerFile/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
         {
             var commandResult = await _dockerCommandService.CreateDockerFile(id);
-            
+            return Results.Ok(commandResult);
+        });
+
+        /// <summary>
+        /// Endpoint to build a Docker command for a specific container: Return the build command.
+        /// </summary>
+        /// <param name="id">The unique identifier of the Docker container.</param>
+        /// <param name="_dockerCommandService">The service to process the request.</param>
+        app.MapGet("/BuildCommand/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.BuildCommand(id);
+            return Results.Ok(commandResult);
+        });
+
+        
+        app.MapGet("/GetRunningContainersCommand/", async (IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.GetRunningContainersCommand();
             return Results.Ok(commandResult);
         });
         
-        app.MapPost("/BuildCommand/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        
+        app.MapGet("/GetImageListCommand/", async (IDockerCommandService _dockerCommandService) =>
         {
-            var commandResult = await _dockerCommandService.BuildCommand(id);
-            
+            var commandResult = await _dockerCommandService.GetImageListCommand();
             return Results.Ok(commandResult);
         });
+        
+        app.MapGet("/GetRemoteRunningContainers/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.GetRemoteRunningContainers(id);
+            return Results.Ok(commandResult);
+        });
+        
+        app.MapGet("/GetRemoteImageList/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.GetRemoteImageList(id);
+            return Results.Ok(commandResult);
+        });
+        
+        app.MapGet("/RemoveRemoteRunningContainers/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.RemoveRemoteRunningContainers(id);
+            return Results.Ok(commandResult);
+        });
+        
+        app.MapGet("/RemoveRemoteImagesList/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.RemoveRemoteImagesList(id);
+            return Results.Ok(commandResult);
+        });
+        
+        
         return app;
     }
 }

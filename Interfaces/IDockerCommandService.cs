@@ -8,4 +8,10 @@ public interface IDockerCommandService
     Task<DockerCommandResponse<string>> SendLocalhostCommand(int deployId, string command);
     Task<DockerCommandResponse<string>> CreateDockerFile(int deployId);
     Task<DockerCommandResponse<string>> BuildCommand(int deployId);
+    Task<DockerCommandResponse<string>> GetRunningContainersCommand();
+    Task<DockerCommandResponse<string>> GetImageListCommand();
+    Task<DockerCommandResponse<string>> GetRemoteRunningContainers(int deployId);
+    Task<DockerCommandResponse<string>> GetRemoteImageList(int deployId);
+    Task<DockerCommandResponse<string>> RemoveRemoteRunningContainers(int deployId);
+    Task<DockerCommandResponse<string>> RemoveRemoteImagesList(int deployId);
 }

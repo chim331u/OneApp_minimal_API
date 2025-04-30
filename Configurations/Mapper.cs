@@ -4,17 +4,32 @@ using OneApp_minimalApi.Models;
 
 namespace OneApp_minimalApi.Configurations;
 
+/// <summary>
+/// Provides mapping methods for converting between models and DTOs.
+/// </summary>
 public static class Mapper
 {
+    /// <summary>
+    /// Maps a <see cref="FilesDetail"/> model to a <see cref="FilesDetailRequest"/> DTO.
+    /// </summary>
+    /// <param name="filesDetail">The <see cref="FilesDetail"/> model to map.</param>
+    /// <returns>A <see cref="FilesDetailRequest"/> DTO.</returns>
     public static FilesDetailRequest FromRequestToFilesDetail(FilesDetail filesDetail)
     {
         return new FilesDetailRequest()
         {
-            FileCategory = filesDetail.FileCategory, FileSize = filesDetail.FileSize,
-            Name = filesDetail.Name, Path = filesDetail.Path
+            FileCategory = filesDetail.FileCategory,
+            FileSize = filesDetail.FileSize,
+            Name = filesDetail.Name,
+            Path = filesDetail.Path
         };
     }
 
+    /// <summary>
+    /// Maps a <see cref="DockerConfig"/> model to a <see cref="DockerConfigsDto"/> DTO.
+    /// </summary>
+    /// <param name="dockerConfig">The <see cref="DockerConfig"/> model to map.</param>
+    /// <returns>A <see cref="DockerConfigsDto"/> DTO.</returns>
     public static DockerConfigsDto FromDockerModelToDto(DockerConfig dockerConfig)
     {
         return new DockerConfigsDto()
@@ -43,10 +58,16 @@ public static class Mapper
             SolutionFolder = dockerConfig.SolutionFolder,
             SolutionRepository = dockerConfig.SolutionRepository,
             User = dockerConfig.User,
-            Note = dockerConfig.Note, ImageVersion = dockerConfig.ImageVersion,
+            Note = dockerConfig.Note,
+            ImageVersion = dockerConfig.ImageVersion,
         };
     }
 
+    /// <summary>
+    /// Maps a <see cref="DockerConfigsDto"/> DTO to a <see cref="DockerConfig"/> model.
+    /// </summary>
+    /// <param name="dockerConfigsDto">The <see cref="DockerConfigsDto"/> DTO to map.</param>
+    /// <returns>A <see cref="DockerConfig"/> model.</returns>
     public static DockerConfig FromDockerConfigDtoToDockerModel(DockerConfigsDto dockerConfigsDto)
     {
         return new DockerConfig()
@@ -83,6 +104,11 @@ public static class Mapper
         };
     }
 
+    /// <summary>
+    /// Maps a <see cref="DeployDetail"/> model to a <see cref="DeployDetailDto"/> DTO.
+    /// </summary>
+    /// <param name="deployDetail">The <see cref="DeployDetail"/> model to map.</param>
+    /// <returns>A <see cref="DeployDetailDto"/> DTO.</returns>
     public static DeployDetailDto FromDeployDetailToDto(DeployDetail deployDetail)
     {
         return new DeployDetailDto()

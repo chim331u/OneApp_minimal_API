@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OneApp_minimalApi.Models;
+// ReSharper disable All
 
 namespace OneApp_minimalApi.AppContext
 { 
@@ -21,13 +22,29 @@ namespace OneApp_minimalApi.AppContext
         /// </summary>
         public DbSet<Configs> Configuration { get; set; }
 
+        /// <summary>
+        /// Gets or sets the DbSet representing the collection of DD_Settings in the database.
+        /// </summary>
         public DbSet<DD_Settings> DDSettings { get; set; }
         
+        /// <summary>
+        /// Gets or sets the DbSet representing the collection of DD_Threads in the database.
+        /// </summary>
         public DbSet<DD_Threads> DDThreads { get; set; }
         
+        /// <summary>
+        /// Gets or sets the DbSet representing the collection of DD_LinkEd2k in the database.
+        /// </summary>
         public DbSet<DD_LinkEd2k> DDLinkEd2 { get; set; }
         
+        /// <summary>
+        /// Gets or sets the DbSet representing the collection of Docker configurations in the database.
+        /// </summary>
         public DbSet<DockerConfig> DockerConfig { get; set; }
+
+        /// <summary>
+        /// Gets or sets the DbSet representing the collection of deployment details in the database.
+        /// </summary>
         public DbSet<DeployDetail> DeployDetails { get; set; }
         
         /// <summary>
@@ -41,6 +58,7 @@ namespace OneApp_minimalApi.AppContext
 
             modelBuilder.Entity<DockerConfig>().ToTable("DD_ProjectDeployerConfig")
                 .HasMany(c => c.DeployDetails);
+
             modelBuilder.Entity<DeployDetail>().ToTable("DD_DeployDetails");
             
             // Apply configurations from the current assembly.
