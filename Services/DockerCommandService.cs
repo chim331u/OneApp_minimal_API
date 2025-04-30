@@ -386,7 +386,8 @@ public class DockerCommandService : IDockerCommandService
         
         try
         {
-            var imageName = $"{dockerConfig.AppName}_image";
+            //TODO: manage the lastet image version?
+            var imageName = $"{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
             var imageModels = new List<ImageModel>();
 
             imagesList.Data.Split('\n', StringSplitOptions.RemoveEmptyEntries).ToList()
