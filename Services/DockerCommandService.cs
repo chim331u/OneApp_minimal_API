@@ -145,7 +145,15 @@ public class DockerCommandService : IDockerCommandService
             await using (var dockerFile = new StreamWriter(dockerConfig.DockerFileName, false, Encoding.UTF8))
             {
                 await dockerFile.WriteLineAsync(
-                    $"FROM mcr.microsoft.com/dotnet/sdk:{dockerConfig.SkdVersion} as SOURCE");
+                    $"FROM mcr.microsoft.com/dotnet/aspnet:{dockerConfig.SkdVersion} AS base");
+                await dockerFile.WriteLineAsync($"USER $APP_UID");
+                await dockerFile.WriteLineAsync($"WORKDIR /app");
+                await dockerFile.WriteLineAsync($"EXPOSE 8080");
+                await dockerFile.WriteLineAsync($"EXPOSE 8081");
+                await dockerFile.WriteLineAsync();
+
+                await dockerFile.WriteLineAsync(
+                    $"FROM mcr.microsoft.com/dotnet/sdk:{dockerConfig.SkdVersion} AS source");
                 await dockerFile.WriteLineAsync($"RUN apt-get update && apt-get install -y \\");
                 await dockerFile.WriteLineAsync($"	curl \\");
                 await dockerFile.WriteLineAsync($"	git \\");
@@ -159,20 +167,39 @@ public class DockerCommandService : IDockerCommandService
 
                 await dockerFile.WriteLineAsync(
                     $"RUN git clone {dockerConfig.Branch} {dockerConfig.SolutionRepository} src");
+                await dockerFile.WriteLineAsync();
+
                 await dockerFile.WriteLineAsync(
-                    $"FROM mcr.microsoft.com/dotnet/sdk:{dockerConfig.SkdVersion} as BUILDER");
-                await dockerFile.WriteLineAsync($"COPY --from=SOURCE /build/src/ /build");
-                await dockerFile.WriteLineAsync($"WORKDIR /build {dockerConfig.SolutionFolder}");
+                    $"FROM mcr.microsoft.com/dotnet/sdk:{dockerConfig.SkdVersion} AS builder");
+                await dockerFile.WriteLineAsync($"COPY --from=source /build/src/ /build");
+                if (!string.IsNullOrEmpty(dockerConfig.SolutionFolder))
+                {
+                    dockerConfig.SolutionFolder = $"/{dockerConfig.SolutionFolder}";
+                }
+
+                await dockerFile.WriteLineAsync($"WORKDIR /build{dockerConfig.SolutionFolder}");
                 await dockerFile.WriteLineAsync(
-                    $"RUN cd /build {dockerConfig.SolutionFolder} ; dotnet build {dockerConfig.BuildProject}");
-                await dockerFile.WriteLineAsync(
-                    $"RUN cd /build {dockerConfig.SolutionFolder} ; dotnet publish {dockerConfig.BuildProject} -c release -o /build/publish");
-                await dockerFile.WriteLineAsync($"RUN cd /build/publish; ls");
-                await dockerFile.WriteLineAsync($"FROM mcr.microsoft.com/dotnet/aspnet:{dockerConfig.SkdVersion}");
-                await dockerFile.WriteLineAsync($"COPY --from=BUILDER /build/publish/ /app");
-                await dockerFile.WriteLineAsync($"WORKDIR /app");
-                //todo: check if wasm
-                await dockerFile.WriteLineAsync($"ENTRYPOINT [\"dotnet\", \"{dockerConfig.AppEntryName}\"]");
+                    $"RUN dotnet build {dockerConfig.BuildProject} -c release -o /app/build");
+                await dockerFile.WriteLineAsync();
+
+                await dockerFile.WriteLineAsync($"FROM builder AS publish");
+                await dockerFile.WriteLineAsync($"RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false");
+                await dockerFile.WriteLineAsync();
+
+
+                if (dockerConfig.AppEntryName == "WASM")
+                {
+                    await dockerFile.WriteLineAsync($"FROM nginx:alpine AS final");
+                    await dockerFile.WriteLineAsync($"WORKDIR /usr/share/nginx/html");
+                    await dockerFile.WriteLineAsync($"COPY --from=publish /app/publish/wwwroot .");
+                }
+                else
+                {
+                    await dockerFile.WriteLineAsync($"FROM base AS final");
+                    await dockerFile.WriteLineAsync($"WORKDIR /app");
+                    await dockerFile.WriteLineAsync($"COPY --from=publish /app/publish .");
+                    await dockerFile.WriteLineAsync($"ENTRYPOINT [\"dotnet\", \"{dockerConfig.AppEntryName}\"]");
+                }
             }
 
             _logger.LogInformation($"Dockerfile created at {dockerConfig.DockerFileName}");
@@ -185,6 +212,48 @@ public class DockerCommandService : IDockerCommandService
         {
             _logger.LogError($"Error creating Dockerfile: {ex.Message}");
             return new DockerCommandResponse<string>(ex.Message, dockerConfig.DockerFileName, false);
+        }
+    }
+
+    /// <summary>
+    /// Upload docker file to NAS.  
+    /// </summary>
+    /// <param name="deployId"></param>
+    /// <returns>DockerCommand Response</returns>
+    public async Task<DockerCommandResponse<string>> UploadDockerFile(int deployId)
+    {
+        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        if (dockerConfig == null)
+        {
+            _logger.LogWarning("No configuration found");
+            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        try
+        {
+            using (var client = new SftpClient(dockerConfig.Host, dockerConfig.User,
+                       await _utilityServices.DecryptString(dockerConfig.Password)))
+            {
+                client.Connect();
+                _logger.LogInformation($"Client connected to NAS");
+
+                await using (FileStream fs = File.OpenRead(dockerConfig.DockerFileName))
+                {
+                    //todo: retrive from DockerSettings
+                    var _nasPath = "/root/Dockerfile";
+                    client.UploadFile(fs, _nasPath);
+                }
+            }
+
+            _logger.LogInformation($"Docker file uploaded to NAS ");
+            return new DockerCommandResponse<string>("Connected to NAS, Docker File uploaded", "UploadDockerFile",
+                true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error upload docker file: {ex.Message}");
+            return new DockerCommandResponse<string>(ex.Message, "UploadDockerFile", false);
         }
     }
 
@@ -206,7 +275,14 @@ public class DockerCommandService : IDockerCommandService
         var imageName = $"{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
         _logger.LogInformation($"Image name: {imageName}");
 
-        var command = $" build -t {dockerConfig.AppName}:latest -t {imageName} -f {dockerConfig.DockerFileName} .";
+        string noCache = string.Empty;
+        if (dockerConfig.noCache)
+        {
+            noCache = " --no-cache";
+        }
+
+        var command =
+            $" build{noCache} -t {dockerConfig.AppName}_image:latest -t {imageName} -f {dockerConfig.DockerFileName} .";
         _logger.LogInformation($"Docker build command: {command}");
         return new DockerCommandResponse<string>(command, dockerConfig.DockerFileName, true);
     }
@@ -217,6 +293,7 @@ public class DockerCommandService : IDockerCommandService
     /// <returns>A <see cref="DockerCommandResponse{T}"/> containing the command to list running containers.</returns>
     public async Task<DockerCommandResponse<string>> GetRunningContainersCommand()
     {
+        // The command to list running Docker containers in JSON format
         var runningContainerCommand = $"docker container ls --format='{{{{json .}}}}'";
 
         _logger.LogInformation($"Running Containers command =  {runningContainerCommand}");
@@ -368,6 +445,7 @@ public class DockerCommandService : IDockerCommandService
             return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
                 "FindDockerConfig", false);
         }
+
         var imagesList = await GetRemoteImageList(deployId);
 
         if (!imagesList.IsSuccess)
@@ -383,7 +461,7 @@ public class DockerCommandService : IDockerCommandService
             return new DockerCommandResponse<string>("No images found",
                 "RemoveRemoteImagesList", false);
         }
-        
+
         try
         {
             //TODO: manage the lastet image version?
@@ -395,24 +473,28 @@ public class DockerCommandService : IDockerCommandService
 
             var logtoreturn = "";
 
-            foreach (var imageModel in imageModels.Where(imageModel => imageModel.Repository == "<none>" || imageModel.Repository == imageName))
+            foreach (var imageModel in imageModels.Where(imageModel =>
+                         imageModel.Repository == "<none>" || imageModel.Repository == imageName))
             {
-                logtoreturn += ($"Removing image {imageModel.Id} - {imageModel.Repository} - {imageModel.Tag} {Environment.NewLine}");
+                logtoreturn +=
+                    ($"Removing image {imageModel.Id} - {imageModel.Repository} - {imageModel.Tag} {Environment.NewLine}");
 
                 //var response = ssh.RunCommand($@"{variables.DockerCommand} rmi {imageModel.Id} --force");
-                var removeImageResponse = await SendSSHCommand(deployId, $@"{dockerConfig.DockerCommand} rmi {imageModel.Id} --force");
+                var removeImageResponse =
+                    await SendSSHCommand(deployId, $@"{dockerConfig.DockerCommand} rmi {imageModel.Id} --force");
 
                 if (!removeImageResponse.IsSuccess)
                 {
-                    logtoreturn += ($"Error removing image {imageModel.Id}: {removeImageResponse.Data} {Environment.NewLine}");
+                    logtoreturn +=
+                        ($"Error removing image {imageModel.Id}: {removeImageResponse.Data} {Environment.NewLine}");
                 }
                 else
                 {
                     logtoreturn += ($"Image removed: {imageModel.Id} - {imageModel.Repository} {Environment.NewLine}");
                 }
             }
-            return new DockerCommandResponse<string>(logtoreturn, "RemoveRemoteImagesList", true);
 
+            return new DockerCommandResponse<string>(logtoreturn, "RemoveRemoteImagesList", true);
         }
         catch (Exception ex)
         {
@@ -421,4 +503,112 @@ public class DockerCommandService : IDockerCommandService
         }
     }
 
+    public async Task<DockerCommandResponse<string>> BuildImage(int deployId)
+    {
+        var buildCommand = await BuildCommand(deployId);
+        if (!buildCommand.IsSuccess)
+        {
+            _logger.LogWarning($"Unable to retrive build command");
+            return new DockerCommandResponse<string>("Unable to retrive build command",
+                "BuildCommand", false);
+        }
+
+        _logger.LogWarning($"Build command: {buildCommand.Data} sent: please wait for the result");
+        var buildResult = await SendSSHCommand(deployId, buildCommand.Data);
+
+        if (!buildResult.IsSuccess)
+        {
+            _logger.LogError($"Unable to build image");
+            return new DockerCommandResponse<string>(buildResult.Data,
+                "Unable to Build Image", false);
+        }
+
+        return new DockerCommandResponse<string>(buildResult.Data, "BuildImage", true);
+    }
+
+    public async Task<DockerCommandResponse<string>> GetRunImageCommand(int deployId)
+    {
+        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+
+        if (dockerConfig == null)
+        {
+            _logger.LogWarning("No configuration found");
+            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        var folderCommand1 = string.Empty;
+        var folderCommand2 = string.Empty;
+        var folderCommand3 = string.Empty;
+
+        if (!string.IsNullOrEmpty(dockerConfig.FolderFrom1))
+        {
+            if (string.IsNullOrEmpty(dockerConfig.FolderContainer1))
+            {
+                _logger.LogInformation($"Folder Container 1 is empty: load default configuration (/data)");
+                dockerConfig.FolderContainer1 = @"/data";
+            }
+
+            folderCommand1 = string.Concat(@" -v ", dockerConfig.FolderFrom1, ":", dockerConfig.FolderContainer1);
+        }
+
+        if (!string.IsNullOrEmpty(dockerConfig.FolderFrom2))
+        {
+            if (string.IsNullOrEmpty(dockerConfig.FolderContainer2))
+            {
+                _logger.LogInformation($"Folder Container 2 is empty: load default configuration (/data)");
+                dockerConfig.FolderContainer2 = @"/data";
+            }
+
+            folderCommand2 = string.Concat(@" -v ", dockerConfig.FolderFrom2, ":", dockerConfig.FolderContainer2);
+        }
+
+        if (!string.IsNullOrEmpty(dockerConfig.FolderFrom3))
+        {
+            if (string.IsNullOrEmpty(dockerConfig.FolderContainer3))
+            {
+                _logger.LogInformation($"Folder Container 3 is empty: load default configuration (/data)");
+
+                dockerConfig.FolderContainer3 = @"/data";
+            }
+
+            folderCommand3 = string.Concat(@" -v ", dockerConfig.FolderFrom3, ":", dockerConfig.FolderContainer3);
+        }
+
+        var imageName = $"{dockerConfig.AppName}_image:latest";
+
+        string dockerCommand =
+            $"{dockerConfig.DockerCommand} run --restart always --name {dockerConfig.AppName} -d -p " +
+            dockerConfig.PortAddress + folderCommand1 + folderCommand2 + folderCommand3 + " " + imageName + "";
+
+        _logger.LogInformation($"Run command= {dockerCommand}");
+
+        return new DockerCommandResponse<string>(dockerCommand, "RunImageCommand", true);
+    }
+
+    public async Task<DockerCommandResponse<string>> RunContainer(int deployId)
+    {
+        var runCommand = await BuildCommand(deployId);
+        if (!runCommand.IsSuccess)
+        {
+            _logger.LogWarning($"Unable to retrieve run command");
+            return new DockerCommandResponse<string>("Unable to retrieve build command",
+                "RunCommand", false);
+        }
+
+        _logger.LogWarning($"Run command: {runCommand.Data} sent: Container is starting, please wait for the result");
+        var runResult = await SendSSHCommand(deployId, runCommand.Data);
+
+        if (!runResult.IsSuccess)
+        {
+            _logger.LogError($"Unable to run container");
+            return new DockerCommandResponse<string>(runResult.Data,
+                "Unable to Run Container", false);
+        }
+
+        return new DockerCommandResponse<string>(runResult.Data, "RunImage", true);
+        
+    }
+    
+    
 }

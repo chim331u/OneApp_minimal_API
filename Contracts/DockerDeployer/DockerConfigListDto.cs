@@ -3,7 +3,7 @@ namespace OneApp_minimalApi.Contracts.DockerDeployer;
 /// <summary>
 /// Represents a Data Transfer Object (DTO) for Docker configurations.
 /// </summary>
-public class DockerConfigurationDto
+public class DockerConfigListDto
 {
     /// <summary>
     /// Gets or sets the unique identifier for the Docker configuration.

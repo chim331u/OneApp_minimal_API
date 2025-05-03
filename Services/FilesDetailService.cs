@@ -84,7 +84,7 @@ namespace OneApp_minimalApi.Services
         /// <summary>
         /// Get all files by category
         /// </summary>
-        /// <param name="Category"></param>
+        /// <param name="fileCategory"></param>
         /// <returns>All active files by category</returns>
         public async Task<IEnumerable<FilesDetailResponse?>> GetAllFiles(string fileCategory)
         {
@@ -199,7 +199,7 @@ namespace OneApp_minimalApi.Services
         /// <summary>
         /// Add new File detail
         /// </summary>
-        /// <param name="FileDetatilRequest"></param>
+        /// <param name="FilesDetailRequest"></param>
         /// <returns>Details of the created book</returns>
         public async Task<FilesDetailResponse?> AddFileDetailAsync(FilesDetailRequest filesDetailRequest)
         {

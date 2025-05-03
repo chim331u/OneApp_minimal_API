@@ -9,5 +9,7 @@ namespace OneApp_minimalApi.Interfaces
         Task MoveFilesJob(List<FileMoveDto> filesToMove, CancellationToken cancellationToken);
 
         Task RefreshFiles(CancellationToken cancellationToken);
+
+        Task ExecuteFullDeploy(int dockerConfigId, CancellationToken cancellationToken);
     }
 }

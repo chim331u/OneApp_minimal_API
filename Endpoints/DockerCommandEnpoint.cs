@@ -1,3 +1,4 @@
+using Hangfire;
 using OneApp_minimalApi.Interfaces;
 
 namespace OneApp_minimalApi.Endpoints;
@@ -98,6 +99,13 @@ public static class DockerCommandEnpoint
         {
             var commandResult = await _dockerCommandService.RemoveRemoteImagesList(id);
             return Results.Ok(commandResult);
+        });
+        
+        app.MapGet("/ExecuteFullDeploy/{id:int}", async (int id, IHangFireJobService jobService) =>
+        {
+            var jobId = BackgroundJob.Enqueue<IHangFireJobService>(job => job.ExecuteFullDeploy(id, CancellationToken.None));
+
+            return string.IsNullOrEmpty(jobId) ? Results.BadRequest("Failed to start job") : Results.Ok(jobId);
         });
         
         

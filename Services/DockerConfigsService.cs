@@ -32,12 +32,12 @@ public class DockerConfigsService : IDockerConfigsService
     /// Retrieves the list of Docker configurations from the database.
     /// </summary>
     /// <returns>A list of Docker configurations ordered by name.</returns>
-    public async Task<IEnumerable<DockerConfigurationDto>> GetDockerConfigList()
+    public async Task<IEnumerable<DockerConfigListDto>> GetDockerConfigList()
     {
         try
         {
             var configsList = await _context.DockerConfig.Where(x => x.IsActive)
-                .Select(i => new DockerConfigurationDto()
+                .Select(i => new DockerConfigListDto()
                 {
                     Id = i.Id,
                     Name = i.Name,
@@ -154,6 +154,7 @@ public class DockerConfigsService : IDockerConfigsService
             if (!string.IsNullOrEmpty(dockerConfigsDto.SkdVersion)) existingItem.SkdVersion = dockerConfigsDto.SkdVersion;
             if (!string.IsNullOrEmpty(dockerConfigsDto.SolutionFolder)) existingItem.SolutionFolder = dockerConfigsDto.SolutionFolder;
             if (!string.IsNullOrEmpty(dockerConfigsDto.SolutionRepository)) existingItem.SolutionRepository = dockerConfigsDto.SolutionRepository;
+            if (!string.IsNullOrEmpty(dockerConfigsDto.ImageVersion)) existingItem.ImageVersion = dockerConfigsDto.ImageVersion;
 
             _context.DockerConfig.Update(existingItem);
             await _context.SaveChangesAsync();

@@ -48,6 +48,11 @@ namespace OneApp_minimalApi.AppContext
         public DbSet<DeployDetail> DeployDetails { get; set; }
         
         /// <summary>
+        /// Get or sets the DbSet representing the collection of Nas settings in the database.
+        /// </summary>
+        public DbSet<NasSetting> NasSetting { get; set; }
+        
+        /// <summary>
         /// Configures the model and relationships for the database context.
         /// </summary>
         /// <param name="modelBuilder">The builder used to construct the model for the database context.</param>

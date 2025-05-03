@@ -129,6 +129,11 @@ public class DockerConfigsDto
     /// Gets or sets the image version for the Docker configuration.
     /// </summary>
     public string? ImageVersion { get; set; }
+    
+    /// <summary>
+    /// Get or sets if the build should be with no-cache.
+    /// </summary>
+    public bool noCache { get; set; }
 
     /// <summary>
     /// Gets or sets additional notes for the Docker configuration.

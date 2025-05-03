@@ -8,6 +8,10 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;1591;1587;1572;1573</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
         <PackageReference Include="Hangfire.AspNetCore" Version="1.8.18" />
@@ -30,11 +34,12 @@
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-        <PackageReference Include="SSH.NET" Version="2025.0.0" />
+        <PackageReference Include="SSH.NET" Version="2024.2.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Temp\DeployLogs\" />
       <Folder Include="Temp\Dest\" />
       <Folder Include="Temp\FCLog\" />
       <Folder Include="Temp\OneAppLog\" />

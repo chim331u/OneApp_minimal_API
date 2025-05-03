@@ -19,4 +19,9 @@ public class SettingDto
     /// Gets or sets the password for the setting.
     /// </summary>
     public string Dd_Password { get; set; }
+
+    /// <summary>
+    /// Get or sets the Alias for the setting.
+    /// </summary>
+    public string? Alias { get; set; }
 }

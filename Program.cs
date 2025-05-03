@@ -30,7 +30,7 @@ builder.Services.AddHangfireServer(options => options.SchedulePollingInterval = 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1",
-        new OpenApiInfo { Title = "Minimal API", Version = "v1", Description = "File categorization API" });
+        new OpenApiInfo { Title = "Minimal API", Version = "v1", Description = "One App minimal API" });
 
     // Set the comments path for the Swagger JSON and UI.
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
