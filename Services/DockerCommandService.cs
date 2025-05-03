@@ -282,7 +282,7 @@ public class DockerCommandService : IDockerCommandService
         }
 
         var command =
-            $" build{noCache} -t {dockerConfig.AppName}_image:latest -t {imageName} -f {dockerConfig.DockerFileName} .";
+            $"docker build{noCache} -t {dockerConfig.AppName}_image:latest -t {imageName} -f {dockerConfig.DockerFileName} .";
         _logger.LogInformation($"Docker build command: {command}");
         return new DockerCommandResponse<string>(command, dockerConfig.DockerFileName, true);
     }
@@ -330,7 +330,7 @@ public class DockerCommandService : IDockerCommandService
         if (!containersCommandResult.IsSuccess)
         {
             _logger.LogWarning($"Unable to retrive Docker container command");
-            return new DockerCommandResponse<string>("Unable to retrive Docker container command",
+            return new DockerCommandResponse<string>("Unable to retrieve Docker container command",
                 "GetRunningContainersCommand", false);
         }
 
@@ -505,6 +505,15 @@ public class DockerCommandService : IDockerCommandService
 
     public async Task<DockerCommandResponse<string>> BuildImage(int deployId)
     {
+        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+
+        if (dockerConfig == null)
+        {
+            _logger.LogWarning("No configuration found");
+            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+        
         var buildCommand = await BuildCommand(deployId);
         if (!buildCommand.IsSuccess)
         {
@@ -514,6 +523,11 @@ public class DockerCommandService : IDockerCommandService
         }
 
         _logger.LogWarning($"Build command: {buildCommand.Data} sent: please wait for the result");
+        
+        if (buildCommand.Data.Contains("docker"))
+        {
+            buildCommand.Data = buildCommand.Data.Replace("docker", dockerConfig.DockerCommand);
+        }
         var buildResult = await SendSSHCommand(deployId, buildCommand.Data);
 
         if (!buildResult.IsSuccess)
@@ -578,7 +592,7 @@ public class DockerCommandService : IDockerCommandService
         var imageName = $"{dockerConfig.AppName}_image:latest";
 
         string dockerCommand =
-            $"{dockerConfig.DockerCommand} run --restart always --name {dockerConfig.AppName} -d -p " +
+            $"docker run --restart always --name {dockerConfig.AppName} -d -p " +
             dockerConfig.PortAddress + folderCommand1 + folderCommand2 + folderCommand3 + " " + imageName + "";
 
         _logger.LogInformation($"Run command= {dockerCommand}");
@@ -597,6 +611,20 @@ public class DockerCommandService : IDockerCommandService
         }
 
         _logger.LogWarning($"Run command: {runCommand.Data} sent: Container is starting, please wait for the result");
+        
+        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+
+        if (dockerConfig == null)
+        {
+            _logger.LogWarning("No configuration found");
+            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+        
+        if (runCommand.Data.Contains("docker"))
+        {
+            runCommand.Data = runCommand.Data.Replace("docker", dockerConfig.DockerCommand);
+        }
         var runResult = await SendSSHCommand(deployId, runCommand.Data);
 
         if (!runResult.IsSuccess)
