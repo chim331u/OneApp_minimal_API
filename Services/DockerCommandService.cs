@@ -241,7 +241,7 @@ public class DockerCommandService : IDockerCommandService
                 await using (FileStream fs = File.OpenRead(dockerConfig.DockerFileName))
                 {
                     //todo: retrive from DockerSettings
-                    var _nasPath = "/root/Dockerfile";
+                    var _nasPath = $"/root/{dockerConfig.DockerFileName}";
                     client.UploadFile(fs, _nasPath);
                 }
             }
