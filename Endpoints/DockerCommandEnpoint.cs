@@ -101,6 +101,12 @@ public static class DockerCommandEnpoint
             return Results.Ok(commandResult);
         });
         
+        app.MapGet("/RunContainer/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.RunContainer(id);
+            return Results.Ok(commandResult);
+        });
+        
         app.MapGet("/ExecuteFullDeploy/{id:int}", async (int id, IHangFireJobService jobService) =>
         {
             var jobId = BackgroundJob.Enqueue<IHangFireJobService>(job => job.ExecuteFullDeploy(id, CancellationToken.None));

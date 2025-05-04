@@ -602,7 +602,7 @@ public class DockerCommandService : IDockerCommandService
 
     public async Task<DockerCommandResponse<string>> RunContainer(int deployId)
     {
-        var runCommand = await BuildCommand(deployId);
+        var runCommand = await GetRunImageCommand(deployId);
         if (!runCommand.IsSuccess)
         {
             _logger.LogWarning($"Unable to retrieve run command");

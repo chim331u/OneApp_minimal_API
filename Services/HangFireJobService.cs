@@ -233,6 +233,7 @@ namespace OneApp_minimalApi.Services
             //Create Docker File
             await _notificationHub.Clients.All.SendAsync("jobNotifications", $"Creating dockerfile...",
                 JobResult.InProgress);
+            WriteLogInfo("Creating Dockerfile...");
             var dockerFileCreated = await _deployActions.CreateDockerFile(dockerConfigId);
 
             if (!dockerFileCreated.IsSuccess)
@@ -249,6 +250,7 @@ namespace OneApp_minimalApi.Services
 
             //Upload Docker File
 
+            WriteLogInfo("DockerFile Created:");
             WriteLogInfo(dockerFileCreated.Data);
             await _notificationHub.Clients.All.SendAsync("jobNotifications", $"{dockerFileCreated.Data}",
                 JobResult.InProgress);
@@ -270,6 +272,7 @@ namespace OneApp_minimalApi.Services
 
             //Remove running containers
             WriteLogInfo(uploadDockerFile.Data);
+            WriteLogInfo("Removing running containers...");
             await _notificationHub.Clients.All.SendAsync("jobNotifications", $"{uploadDockerFile.Data}",
                 JobResult.InProgress);
 
@@ -281,6 +284,7 @@ namespace OneApp_minimalApi.Services
             WriteLogInfo(removeRunningContainers.Data);
 
             //Remove images
+            WriteLogInfo("Removing images...");
             await _notificationHub.Clients.All.SendAsync("jobNotifications", $"Deleting images...",
                 JobResult.InProgress);
             var deleteImages = await _deployActions.RemoveRemoteImagesList(dockerConfigId);
