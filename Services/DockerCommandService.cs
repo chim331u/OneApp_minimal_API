@@ -32,6 +32,148 @@ public class DockerCommandService : IDockerCommandService
         _logger = logger;
         _utilityServices = utilityServices;
     }
+    
+    #region Commands
+    
+    
+    /// <summary>
+    /// Builds a Docker image for a specific deployment.
+    /// </summary>
+    /// <param name="deployId">The unique identifier of the Docker deployment.</param>
+    /// <returns>A <see cref="DockerCommandResponse{T}"/> containing the build command.</returns>
+    public async Task<DockerCommandResponse<string>> GetBuildCommand(int deployId)
+    {
+        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        if (dockerConfig == null)
+        {
+            _logger.LogWarning("No configuration found");
+            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        var imageName = $"{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
+        _logger.LogInformation($"Image name: {imageName}");
+
+        string noCache = string.Empty;
+        if (dockerConfig.noCache)
+        {
+            noCache = " --no-cache";
+        }
+
+        var command =
+            $"docker build{noCache} -t {dockerConfig.AppName}_image:latest -t {imageName} -f {dockerConfig.DockerFileName} .";
+        _logger.LogInformation($"Docker build command: {command}");
+        return new DockerCommandResponse<string>(command, dockerConfig.DockerFileName, true);
+    }
+
+    /// <summary>
+    /// Retrieves the list of running Docker containers.
+    /// </summary>
+    /// <returns>A <see cref="DockerCommandResponse{T}"/> containing the command to list running containers.</returns>
+    public async Task<DockerCommandResponse<string>> GetRunningContainersCommand()
+    {
+        // The command to list running Docker containers in JSON format
+        var runningContainerCommand = $"docker container ls --format='{{{{json .}}}}'";
+
+        _logger.LogInformation($"Running Containers command =  {runningContainerCommand}");
+
+        return new DockerCommandResponse<string>(runningContainerCommand, "RunningContainerCommand", true);
+    }
+    
+    /// <summary>
+    /// Retrieves the list of Docker images in json format.
+    /// </summary>
+    /// <returns>A <see cref="DockerCommandResponse{T}"/> containing the command to list docker images.</returns>
+    public async Task<DockerCommandResponse<string>> GetImageListCommand()
+    {
+        var getImagesCommand = $"docker images --format='{{{{json .}}}}'";
+
+        _logger.LogInformation($"Docker images command =  {getImagesCommand}");
+
+        return new DockerCommandResponse<string>(getImagesCommand, "GetImageListCommand", true);
+    }
+    public async Task<DockerCommandResponse<string>> GetPushImageCommand(int deployId)
+    {
+        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        if (dockerConfig == null)
+        {
+            _logger.LogWarning("No configuration found");
+            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        //todo: retrive from setting
+        var my_docker_repo_username = "chim3312";
+        
+        var pushImagesCommand = $"docker push {my_docker_repo_username}/{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
+
+        _logger.LogInformation($"Docker push command =  {pushImagesCommand}");
+
+        return new DockerCommandResponse<string>(pushImagesCommand, "GetPushImageCommand", true);
+    }
+    public async Task<DockerCommandResponse<string>> GetRunContainerCommand(int deployId)
+    {
+        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+
+        if (dockerConfig == null)
+        {
+            _logger.LogWarning("No configuration found");
+            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        var folderCommand1 = string.Empty;
+        var folderCommand2 = string.Empty;
+        var folderCommand3 = string.Empty;
+
+        if (!string.IsNullOrEmpty(dockerConfig.FolderFrom1))
+        {
+            if (string.IsNullOrEmpty(dockerConfig.FolderContainer1))
+            {
+                _logger.LogInformation($"Folder Container 1 is empty: load default configuration (/data)");
+                dockerConfig.FolderContainer1 = @"/data";
+            }
+
+            folderCommand1 = string.Concat(@" -v ", dockerConfig.FolderFrom1, ":", dockerConfig.FolderContainer1);
+        }
+
+        if (!string.IsNullOrEmpty(dockerConfig.FolderFrom2))
+        {
+            if (string.IsNullOrEmpty(dockerConfig.FolderContainer2))
+            {
+                _logger.LogInformation($"Folder Container 2 is empty: load default configuration (/data)");
+                dockerConfig.FolderContainer2 = @"/data";
+            }
+
+            folderCommand2 = string.Concat(@" -v ", dockerConfig.FolderFrom2, ":", dockerConfig.FolderContainer2);
+        }
+
+        if (!string.IsNullOrEmpty(dockerConfig.FolderFrom3))
+        {
+            if (string.IsNullOrEmpty(dockerConfig.FolderContainer3))
+            {
+                _logger.LogInformation($"Folder Container 3 is empty: load default configuration (/data)");
+
+                dockerConfig.FolderContainer3 = @"/data";
+            }
+
+            folderCommand3 = string.Concat(@" -v ", dockerConfig.FolderFrom3, ":", dockerConfig.FolderContainer3);
+        }
+
+        var imageName = $"{dockerConfig.AppName}_image:latest";
+
+        string dockerCommand =
+            $"docker run --restart always --name {dockerConfig.AppName} -d -p " +
+            dockerConfig.PortAddress + folderCommand1 + folderCommand2 + folderCommand3 + " " + imageName + "";
+
+        _logger.LogInformation($"Run command= {dockerCommand}");
+
+        return new DockerCommandResponse<string>(dockerCommand, "RunImageCommand", true);
+    }
+
+    
+    #endregion
+    
 
     /// <summary>
     /// Sends an SSH command to a Docker container.
@@ -256,65 +398,7 @@ public class DockerCommandService : IDockerCommandService
             return new DockerCommandResponse<string>(ex.Message, "UploadDockerFile", false);
         }
     }
-
-    /// <summary>
-    /// Builds a Docker image for a specific deployment.
-    /// </summary>
-    /// <param name="deployId">The unique identifier of the Docker deployment.</param>
-    /// <returns>A <see cref="DockerCommandResponse{T}"/> containing the build command.</returns>
-    public async Task<DockerCommandResponse<string>> BuildCommand(int deployId)
-    {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
-        if (dockerConfig == null)
-        {
-            _logger.LogWarning("No configuration found");
-            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
-                "FindDockerConfig", false);
-        }
-
-        var imageName = $"{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
-        _logger.LogInformation($"Image name: {imageName}");
-
-        string noCache = string.Empty;
-        if (dockerConfig.noCache)
-        {
-            noCache = " --no-cache";
-        }
-
-        var command =
-            $"docker build{noCache} -t {dockerConfig.AppName}_image:latest -t {imageName} -f {dockerConfig.DockerFileName} .";
-        _logger.LogInformation($"Docker build command: {command}");
-        return new DockerCommandResponse<string>(command, dockerConfig.DockerFileName, true);
-    }
-
-    /// <summary>
-    /// Retrieves the list of running Docker containers.
-    /// </summary>
-    /// <returns>A <see cref="DockerCommandResponse{T}"/> containing the command to list running containers.</returns>
-    public async Task<DockerCommandResponse<string>> GetRunningContainersCommand()
-    {
-        // The command to list running Docker containers in JSON format
-        var runningContainerCommand = $"docker container ls --format='{{{{json .}}}}'";
-
-        _logger.LogInformation($"Running Containers command =  {runningContainerCommand}");
-
-        return new DockerCommandResponse<string>(runningContainerCommand, "RunningContainerCommand", true);
-    }
-
-
-    /// <summary>
-    /// Retrieves the list of Docker images in json format.
-    /// </summary>
-    /// <returns>A <see cref="DockerCommandResponse{T}"/> containing the command to list docker images.</returns>
-    public async Task<DockerCommandResponse<string>> GetImageListCommand()
-    {
-        var getImagesCommand = $"docker images --format='{{{{json .}}}}'";
-
-        _logger.LogInformation($"Docker images command =  {getImagesCommand}");
-
-        return new DockerCommandResponse<string>(getImagesCommand, "GetImageListCommand", true);
-    }
-
+    
     public async Task<DockerCommandResponse<string>> GetRemoteRunningContainers(int deployId)
     {
         var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
@@ -514,7 +598,7 @@ public class DockerCommandService : IDockerCommandService
                 "FindDockerConfig", false);
         }
         
-        var buildCommand = await BuildCommand(deployId);
+        var buildCommand = await GetBuildCommand(deployId);
         if (!buildCommand.IsSuccess)
         {
             _logger.LogWarning($"Unable to retrive build command");
@@ -539,70 +623,10 @@ public class DockerCommandService : IDockerCommandService
 
         return new DockerCommandResponse<string>(buildResult.Data, "BuildImage", true);
     }
-
-    public async Task<DockerCommandResponse<string>> GetRunImageCommand(int deployId)
-    {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
-
-        if (dockerConfig == null)
-        {
-            _logger.LogWarning("No configuration found");
-            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
-                "FindDockerConfig", false);
-        }
-
-        var folderCommand1 = string.Empty;
-        var folderCommand2 = string.Empty;
-        var folderCommand3 = string.Empty;
-
-        if (!string.IsNullOrEmpty(dockerConfig.FolderFrom1))
-        {
-            if (string.IsNullOrEmpty(dockerConfig.FolderContainer1))
-            {
-                _logger.LogInformation($"Folder Container 1 is empty: load default configuration (/data)");
-                dockerConfig.FolderContainer1 = @"/data";
-            }
-
-            folderCommand1 = string.Concat(@" -v ", dockerConfig.FolderFrom1, ":", dockerConfig.FolderContainer1);
-        }
-
-        if (!string.IsNullOrEmpty(dockerConfig.FolderFrom2))
-        {
-            if (string.IsNullOrEmpty(dockerConfig.FolderContainer2))
-            {
-                _logger.LogInformation($"Folder Container 2 is empty: load default configuration (/data)");
-                dockerConfig.FolderContainer2 = @"/data";
-            }
-
-            folderCommand2 = string.Concat(@" -v ", dockerConfig.FolderFrom2, ":", dockerConfig.FolderContainer2);
-        }
-
-        if (!string.IsNullOrEmpty(dockerConfig.FolderFrom3))
-        {
-            if (string.IsNullOrEmpty(dockerConfig.FolderContainer3))
-            {
-                _logger.LogInformation($"Folder Container 3 is empty: load default configuration (/data)");
-
-                dockerConfig.FolderContainer3 = @"/data";
-            }
-
-            folderCommand3 = string.Concat(@" -v ", dockerConfig.FolderFrom3, ":", dockerConfig.FolderContainer3);
-        }
-
-        var imageName = $"{dockerConfig.AppName}_image:latest";
-
-        string dockerCommand =
-            $"docker run --restart always --name {dockerConfig.AppName} -d -p " +
-            dockerConfig.PortAddress + folderCommand1 + folderCommand2 + folderCommand3 + " " + imageName + "";
-
-        _logger.LogInformation($"Run command= {dockerCommand}");
-
-        return new DockerCommandResponse<string>(dockerCommand, "RunImageCommand", true);
-    }
-
+    
     public async Task<DockerCommandResponse<string>> RunContainer(int deployId)
     {
-        var runCommand = await GetRunImageCommand(deployId);
+        var runCommand = await GetRunContainerCommand(deployId);
         if (!runCommand.IsSuccess)
         {
             _logger.LogWarning($"Unable to retrieve run command");
@@ -635,6 +659,39 @@ public class DockerCommandService : IDockerCommandService
         }
 
         return new DockerCommandResponse<string>(runResult.Data, "RunImage", true);
+        
+    }
+    
+    public async Task<DockerCommandResponse<string>> PushImage(int deployId)
+    {
+        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+
+        if (dockerConfig == null)
+        {
+            _logger.LogWarning("No configuration found");
+            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        var pushCommand = await GetPushImageCommand(deployId);
+        if (pushCommand.Data.Contains("docker"))
+        {
+            pushCommand.Data = pushCommand.Data.Replace("docker", dockerConfig.DockerCommand);
+        }
+        
+        _logger.LogInformation($"Push command = {pushCommand.Data} ");
+        
+        var pushResult = await SendSSHCommand(deployId, pushCommand.Data);
+
+        if (!pushResult.IsSuccess)
+        {
+            _logger.LogError($"Unable to push image");
+            return new DockerCommandResponse<string>(pushResult.Data,
+                "Unable to Push image", false);
+        }
+
+        _logger.LogInformation($"Image Pushed : {pushCommand.Data} ");
+        return new DockerCommandResponse<string>(pushResult.Data, "PushImage", true);
         
     }
     

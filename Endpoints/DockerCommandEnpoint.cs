@@ -52,28 +52,9 @@ public static class DockerCommandEnpoint
             return Results.Ok(commandResult);
         });
 
-        /// <summary>
-        /// Endpoint to build a Docker command for a specific container: Return the build command.
-        /// </summary>
-        /// <param name="id">The unique identifier of the Docker container.</param>
-        /// <param name="_dockerCommandService">The service to process the request.</param>
-        app.MapGet("/BuildCommand/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
-        {
-            var commandResult = await _dockerCommandService.BuildCommand(id);
-            return Results.Ok(commandResult);
-        });
-
-        
         app.MapGet("/GetRunningContainersCommand/", async (IDockerCommandService _dockerCommandService) =>
         {
             var commandResult = await _dockerCommandService.GetRunningContainersCommand();
-            return Results.Ok(commandResult);
-        });
-        
-        
-        app.MapGet("/GetImageListCommand/", async (IDockerCommandService _dockerCommandService) =>
-        {
-            var commandResult = await _dockerCommandService.GetImageListCommand();
             return Results.Ok(commandResult);
         });
         
@@ -83,21 +64,46 @@ public static class DockerCommandEnpoint
             return Results.Ok(commandResult);
         });
         
-        app.MapGet("/GetRemoteImageList/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
-        {
-            var commandResult = await _dockerCommandService.GetRemoteImageList(id);
-            return Results.Ok(commandResult);
-        });
-        
         app.MapGet("/RemoveRemoteRunningContainers/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
         {
             var commandResult = await _dockerCommandService.RemoveRemoteRunningContainers(id);
             return Results.Ok(commandResult);
         });
         
+        app.MapGet("/GetImageListCommand/", async (IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.GetImageListCommand();
+            return Results.Ok(commandResult);
+        });
+
+        app.MapGet("/GetRemoteImageList/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.GetRemoteImageList(id);
+            return Results.Ok(commandResult);
+        });
+        
         app.MapGet("/RemoveRemoteImagesList/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
         {
             var commandResult = await _dockerCommandService.RemoveRemoteImagesList(id);
+            return Results.Ok(commandResult);
+        });
+        
+        app.MapGet("/GetBuildCommand/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.GetBuildCommand(id);
+            return Results.Ok(commandResult);
+        });
+        
+        app.MapGet("/BuildImage/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            //todo: move to hangfire
+            var commandResult = await _dockerCommandService.BuildImage(id);
+            return Results.Ok(commandResult);
+        });
+        
+        app.MapGet("/GetRunContainerCommand/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.GetRunContainerCommand(id);
             return Results.Ok(commandResult);
         });
         
@@ -114,6 +120,17 @@ public static class DockerCommandEnpoint
             return string.IsNullOrEmpty(jobId) ? Results.BadRequest("Failed to start job") : Results.Ok(jobId);
         });
         
+        app.MapGet("/GetPushImageCommand/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.GetPushImageCommand(id);
+            return Results.Ok(commandResult);
+        });
+        
+        app.MapGet("/PushImage/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.PushImage(id);
+            return Results.Ok(commandResult);
+        });
         
         return app;
     }
