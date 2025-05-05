@@ -94,11 +94,12 @@ public static class DockerCommandEnpoint
             return Results.Ok(commandResult);
         });
         
-        app.MapGet("/BuildImage/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        app.MapGet("/BuildImage/{id:int}", async (int id, IHangFireJobService jobService) =>
         {
-            //todo: move to hangfire
-            var commandResult = await _dockerCommandService.BuildImage(id);
-            return Results.Ok(commandResult);
+            var jobId = BackgroundJob.Enqueue<IHangFireJobService>(job => job.BuildImage(id, CancellationToken.None));
+
+            return string.IsNullOrEmpty(jobId) ? Results.BadRequest("Failed to start job") : Results.Ok(jobId);
+            
         });
         
         app.MapGet("/GetRunContainerCommand/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>

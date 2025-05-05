@@ -347,6 +347,51 @@ namespace OneApp_minimalApi.Services
             await Log.CloseAndFlushAsync();
         }
 
+        public async Task BuildImage(int dockerConfigId, CancellationToken cancellationToken)
+        {
+            var logPath = await GetLogPath(dockerConfigId);
+            
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .WriteTo.File(logPath.Data).CreateLogger();
+            
+            Thread.Sleep(1000);
+
+            var jobStartTime = DateTime.Now;
+
+
+            WriteLogInfo($"Start Build Image id: {dockerConfigId} at {jobStartTime}");
+
+            //Build image
+            WriteLogInfo($"Start Building image...");
+            
+            var buildImage = await _deployActions.BuildImage(dockerConfigId);
+
+            if (!buildImage.IsSuccess)
+            {
+                WriteLogWarning(buildImage.Data);
+                _logger.LogWarning(
+                    $"Job Completed with error {buildImage.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+                await _notificationHub.Clients.All.SendAsync("jobNotifications",
+                    $"Job Completed with error {buildImage.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]",
+                    JobResult.Failed);
+
+                await Log.CloseAndFlushAsync();
+            }
+
+            WriteLogInfo(buildImage.Data);
+            await _notificationHub.Clients.All.SendAsync("jobNotifications", $"{buildImage.Data}",
+                JobResult.InProgress);
+
+            //close deploy
+            _logger.LogInformation($"Job Completed: [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+            WriteLogInfo($"Job Completed: [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+            await _notificationHub.Clients.All.SendAsync("jobNotifications",
+                $"Completed Job in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]", JobResult.Completed);
+
+            await Log.CloseAndFlushAsync();
+        }
         #region Log
 
         public async Task<DockerCommandResponse<string>> GetLogPath(int deployId)

@@ -10,6 +10,8 @@ namespace OneApp_minimalApi.Interfaces
 
         Task RefreshFiles(CancellationToken cancellationToken);
 
+        Task BuildImage(int dockerConfigId, CancellationToken cancellationToken);
+        
         Task ExecuteFullDeploy(int dockerConfigId, CancellationToken cancellationToken);
     }
 }
