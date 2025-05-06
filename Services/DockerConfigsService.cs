@@ -64,7 +64,7 @@ public class DockerConfigsService : IDockerConfigsService
     {
         try
         {
-            var dockerConfig = await _context.DockerConfig.FindAsync(id);
+            var dockerConfig = await _context.DockerConfig.Include(x=>x.Settings).Where(x=>x.Id==id).FirstOrDefaultAsync();
             if (dockerConfig == null)
             {
                 _logger.LogWarning($"Docker configuration with ID {id} not found.");
@@ -91,6 +91,11 @@ public class DockerConfigsService : IDockerConfigsService
         {
             dockerConfigs.Password = await _utilityServices.EncryptString(dockerConfigs.Password);
 
+            if (dockerConfigs.SettingId > 0)
+            {
+                
+            }
+            
             if (string.IsNullOrEmpty(dockerConfigs.ImageVersion))
             {
                 dockerConfigs.ImageVersion = "1.0";

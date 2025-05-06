@@ -33,6 +33,27 @@ public static class Mapper
     /// <returns>A <see cref="DockerConfigsDto"/> DTO.</returns>
     public static DockerConfigsDto FromDockerModelToDto(DockerConfig dockerConfig)
     {
+        var _address = string.Empty;
+        var _alias = string.Empty;
+        var _dockerCommandPath = string.Empty;
+        var _dockerFilePath = string.Empty;
+        var _type = string.Empty;
+        var _setting_User = string.Empty;
+        var _setting_Password = string.Empty;
+        var _settingId = 0;
+
+        if (dockerConfig.Settings != null)
+        {
+            _address = dockerConfig.Settings?.Address;
+            _alias = dockerConfig.Settings?.Address;
+            _dockerCommandPath = dockerConfig.Settings?.DockerCommandPath;
+            _dockerFilePath = dockerConfig.Settings?.DockerFilePath;
+            _type = dockerConfig.Settings?.Type;
+            _setting_User = dockerConfig.Settings?.Dd_User;
+            _setting_Password = dockerConfig.Settings?.Dd_Password;
+            _settingId = dockerConfig.Settings!.Id;
+        }
+
         return new DockerConfigsDto()
         {
             Id = dockerConfig.Id,
@@ -61,6 +82,9 @@ public static class Mapper
             User = dockerConfig.User,
             Note = dockerConfig.Note,
             ImageVersion = dockerConfig.ImageVersion,
+            noCache = dockerConfig.noCache,
+            SettingId = _settingId, Address = _address, Alias = _alias, DockerFilePath = _dockerFilePath, DockerCommandPath = _dockerCommandPath,
+            Type = _type, Setting_User = _setting_User, Setting_Password = _setting_Password
         };
     }
 
@@ -101,7 +125,17 @@ public static class Mapper
             SolutionRepository = dockerConfigsDto.SolutionRepository,
             User = dockerConfigsDto.User,
             Note = dockerConfigsDto.Note,
-            ImageVersion = dockerConfigsDto.ImageVersion
+            ImageVersion = dockerConfigsDto.ImageVersion, noCache = dockerConfigsDto.noCache,
+            Settings = new Settings()
+            {
+                Id = dockerConfigsDto.SettingId,
+                Address = dockerConfigsDto.Address,
+                Alias = dockerConfigsDto.Alias,
+                DockerCommandPath = dockerConfigsDto.DockerCommandPath,
+                DockerFilePath = dockerConfigsDto.DockerFilePath,
+                Type = dockerConfigsDto.Type, Dd_User = dockerConfigsDto.Setting_User,
+                Dd_Password = dockerConfigsDto.Setting_Password
+            }
         };
     }
 

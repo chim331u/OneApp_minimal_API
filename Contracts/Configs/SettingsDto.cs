@@ -6,7 +6,7 @@ public class SettingsDto
     public string User { get; set; }
     public string Password { get; set; }
 
-    public string Alias { get; set; }
+    public string? Alias { get; set; }
 
     public string? Address { get; set; } //https://hub.docker.com/
 

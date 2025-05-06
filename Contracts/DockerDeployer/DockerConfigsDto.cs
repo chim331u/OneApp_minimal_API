@@ -139,4 +139,15 @@ public class DockerConfigsDto
     /// Gets or sets additional notes for the Docker configuration.
     /// </summary>
     public string? Note { get; set; }
+
+    public int SettingId { get; set; }
+    public string? Alias { get; set; }
+
+    public string? Address { get; set; } //https://hub.docker.com/
+
+    public string? Type { get; set; } //DD, Nas, DockerRegistry
+    public string? DockerCommandPath { get; set; } //share/.../docker
+    public string? DockerFilePath { get; set; } // /root/Dockerfile
+    public string? Setting_User { get; set; } 
+    public string? Setting_Password { get; set; } 
 }

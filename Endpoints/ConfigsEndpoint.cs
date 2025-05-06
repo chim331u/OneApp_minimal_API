@@ -90,7 +90,7 @@ public static class ConfigsEndpoint
         /// Endpoint to add a new Setting.
         /// </summary>
         /// <param name="configsDto">The Setting data to add.</param>
-        app.MapPost("/AddConfig", async (SettingsDto settingDto, IConfigsService configsService) =>
+        app.MapPost("/AddSetting", async (SettingsDto settingDto, IConfigsService configsService) =>
         {
             var result = await configsService.AddSetting(settingDto);
             return Results.Created($"/GetSetting/{result.Data.Id}", result); 

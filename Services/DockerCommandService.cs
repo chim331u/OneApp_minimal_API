@@ -111,6 +111,49 @@ public class DockerCommandService : IDockerCommandService
 
         return new DockerCommandResponse<string>(pushImagesCommand, "GetPushImageCommand", true);
     }
+    
+    public async Task<DockerCommandResponse<string>> GetLoginDockerRegistryCommand(int deployId)
+    {
+        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        if (dockerConfig == null)
+        {
+            _logger.LogWarning("No configuration found");
+            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        //todo: retrive from setting
+        var my_docker_repo_username = "chim3312";
+        var my_docker_repo_password = "chim3312";
+        
+        var dockingRegistryLogin = $"docker login -u {my_docker_repo_username} -p {my_docker_repo_password} docker.io";
+
+        _logger.LogInformation($"Docker registry login command =  {dockingRegistryLogin}");
+
+        return new DockerCommandResponse<string>(dockingRegistryLogin, "GetPushImageCommand", true);
+    }
+
+    public async Task<DockerCommandResponse<string>> GetTagImageCommand(int deployId)
+    {
+        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        if (dockerConfig == null)
+        {
+            _logger.LogWarning("No configuration found");
+            return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        //todo: retrive from setting
+        var my_docker_repo_username = "chim3312";
+        
+        var dockingTagImage = $"docker tag {dockerConfig.AppName}_image {my_docker_repo_username}/{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
+
+        _logger.LogInformation($"Tag Image command =  {dockingTagImage}");
+
+        return new DockerCommandResponse<string>(dockingTagImage, "GetPushImageCommand", true);
+    }
+    
+    //TODO: tag the image
     public async Task<DockerCommandResponse<string>> GetRunContainerCommand(int deployId)
     {
         var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
@@ -673,6 +716,36 @@ public class DockerCommandService : IDockerCommandService
                 "FindDockerConfig", false);
         }
 
+        var loginCommand = await GetLoginDockerRegistryCommand(deployId);
+        if (loginCommand.Data.Contains("docker"))
+        {
+            loginCommand.Data = loginCommand.Data.Replace("docker", dockerConfig.DockerCommand);
+        }
+        _logger.LogInformation($"Login registry command = {loginCommand.Data} ");
+        
+        var loginResult = await SendSSHCommand(deployId, loginCommand.Data);
+        if (!loginResult.IsSuccess)
+        {
+            _logger.LogError($"Unable to login to docker registry");
+            return new DockerCommandResponse<string>(loginResult.Data,
+                "Unable to Login to Docker Registry", false);
+        }
+        _logger.LogInformation($"Login to docker registry: {loginResult.Data} ");
+        var tagCommand = await GetTagImageCommand(deployId);
+        if (tagCommand.Data.Contains("docker"))
+        {
+            tagCommand.Data = tagCommand.Data.Replace("docker", dockerConfig.DockerCommand);
+        }
+        _logger.LogInformation($"Tag command = {tagCommand.Data} ");
+        var tagResult = await SendSSHCommand(deployId, tagCommand.Data);
+        if (!tagResult.IsSuccess)
+        {
+            _logger.LogError($"Unable to tag image");
+            return new DockerCommandResponse<string>(tagResult.Data,
+                "Unable to Tag image", false);
+        }
+        _logger.LogInformation($"Image tagged: {tagResult.Data} ");
+        
         var pushCommand = await GetPushImageCommand(deployId);
         if (pushCommand.Data.Contains("docker"))
         {
