@@ -62,7 +62,7 @@ namespace OneApp_minimalApi.Models
         public string? ImageVersion { get; set; }
         public bool noCache { get; set; } = false;
         
-        public DD_Settings? DD_Settings { get; set; }
+        public Settings? DD_Settings { get; set; }
 
 
         public ICollection<DeployDetail>? DeployDetails { get; set; }

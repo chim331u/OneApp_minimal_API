@@ -39,6 +39,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Models\DD_Web\" />
       <Folder Include="Temp\DeployLogs\" />
       <Folder Include="Temp\Dest\" />
       <Folder Include="Temp\FCLog\" />

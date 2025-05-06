@@ -67,6 +67,55 @@ public static class ConfigsEndpoint
             return result ? Results.NoContent() : Results.NotFound();
         });
 
+                /// <summary>
+        /// Endpoint to get a list of Setting.
+        /// </summary>
+        app.MapGet("/GetSettingList", async (IConfigsService configsService) =>
+        {
+            var result = await configsService.GetSettingsList();
+            return Results.Ok(result);
+        });
+        
+        /// <summary>
+        /// Endpoint to get a Setting by its ID.
+        /// </summary>
+        /// <param name="id">The unique identifier of the Setting.</param>
+        app.MapGet("/GetSetting/{id:int}", async (int id, IConfigsService configsService) =>
+        {
+            var result = await configsService.GetSetting(id);
+            return result != null ? Results.Ok(result) : Results.NotFound();
+        });
+        
+        /// <summary>
+        /// Endpoint to add a new Setting.
+        /// </summary>
+        /// <param name="configsDto">The Setting data to add.</param>
+        app.MapPost("/AddConfig", async (SettingsDto settingDto, IConfigsService configsService) =>
+        {
+            var result = await configsService.AddSetting(settingDto);
+            return Results.Created($"/GetSetting/{result.Data.Id}", result); 
+        });
+        
+        /// <summary>
+        /// Endpoint to update an existing Setting.
+        /// </summary>
+        /// <param name="id">The unique identifier of the Setting to update.</param>
+        /// <param name="configsDto">The updated Setting data.</param>
+        app.MapPut("/UpdateSetting/{id:int}", async (int id, SettingsDto settingDto, IConfigsService configsService) =>
+        {
+            var result = await configsService.UpdateSetting(id, settingDto);
+            return result != null ? Results.Ok(result) : Results.NotFound();
+        });
+        
+        /// <summary>
+        /// Endpoint to delete a Setting by its ID.
+        /// </summary>
+        /// <param name="id">The unique identifier of the Setting to delete.</param>
+        app.MapDelete("/DeleteSetting/{id:int}", async (int id, IConfigsService configsService) =>
+        {
+            var result = await configsService.DeleteSetting(id);
+            return result.Data ? Results.NoContent() : Results.NotFound();
+        });
         return app;
     }
 }

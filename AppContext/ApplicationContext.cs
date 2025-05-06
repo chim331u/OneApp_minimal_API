@@ -23,9 +23,9 @@ namespace OneApp_minimalApi.AppContext
         public DbSet<Configs> Configuration { get; set; }
 
         /// <summary>
-        /// Gets or sets the DbSet representing the collection of DD_Settings in the database.
+        /// Gets or sets the DbSet representing the collection of Settings in the database.
         /// </summary>
-        public DbSet<DD_Settings> DDSettings { get; set; }
+        public DbSet<Settings> DDSettings { get; set; }
         
         /// <summary>
         /// Gets or sets the DbSet representing the collection of DD_Threads in the database.
@@ -48,11 +48,6 @@ namespace OneApp_minimalApi.AppContext
         public DbSet<DeployDetail> DeployDetails { get; set; }
         
         /// <summary>
-        /// Get or sets the DbSet representing the collection of Nas settings in the database.
-        /// </summary>
-        public DbSet<NasSetting> NasSetting { get; set; }
-        
-        /// <summary>
         /// Configures the model and relationships for the database context.
         /// </summary>
         /// <param name="modelBuilder">The builder used to construct the model for the database context.</param>
@@ -65,6 +60,8 @@ namespace OneApp_minimalApi.AppContext
                 .HasMany(c => c.DeployDetails);
 
             modelBuilder.Entity<DeployDetail>().ToTable("DD_DeployDetails");
+            
+            modelBuilder.Entity<Settings>().ToTable("DDSettings");
             
             // Apply configurations from the current assembly.
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationContext).Assembly);

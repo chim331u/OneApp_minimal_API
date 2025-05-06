@@ -1,3 +1,4 @@
+using OneApp_minimalApi.Contracts.Configs;
 using OneApp_minimalApi.Contracts.DockerDeployer;
 using OneApp_minimalApi.Contracts.FilesDetail;
 using OneApp_minimalApi.Models;
@@ -121,6 +122,32 @@ public static class Mapper
             Note = deployDetail.Note,
             LogFilePath = deployDetail.LogFilePath,
             Result = deployDetail.Result,
+        };
+    }
+
+    public static Settings FromSettingDtoToSettingsModel(SettingsDto settingsDto)
+    {
+        return new Settings()
+        {
+            Id = settingsDto.Id,
+            Address = settingsDto.Address,
+            Alias = settingsDto.Alias,
+            DockerCommandPath = settingsDto.DockerCommandPath,
+            Dd_Password = settingsDto.Password,
+            Dd_User = settingsDto.User,
+            DockerFilePath = settingsDto.DockerFilePath,
+            Note = settingsDto.Note, Type = settingsDto.Type
+        };
+    }
+
+    public static SettingsDto FromSettingsToDto(Settings settings)
+    {
+        return new SettingsDto()
+        {
+            Id = settings.Id, Address = settings.Address,
+            Alias = settings.Alias, DockerCommandPath = settings.DockerCommandPath,
+            DockerFilePath = settings.DockerFilePath, Note = settings.Note, Type = settings.Type,
+            Password = settings.Dd_Password, User = settings.Dd_User
         };
     }
 }

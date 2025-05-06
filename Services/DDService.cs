@@ -41,7 +41,7 @@ public class DDService : IDDService
     /// <returns>A string indicating the result of the operation.</returns>
     public async Task<string> GetLinks(string link)
     {
-        // var _setting = new DD_Settings()
+        // var _setting = new Settings()
         // {
         //     CreatedDate = DateTime.Now,
         //     IsActive = true,
@@ -136,7 +136,7 @@ public class DDService : IDDService
     /// <returns>A string indicating the result of the operation.</returns>
     public async Task<string> GetLinks(int threadId)
     {
-        // var _setting = new DD_Settings()
+        // var _setting = new Settings()
         //  {
         //      CreatedDate = DateTime.Now,
         //      IsActive = true,
@@ -718,8 +718,8 @@ public class DDService : IDDService
     /// Adds a new setting to the database.
     /// </summary>
     /// <param name="setting">The setting to add.</param>
-    /// <returns>The added setting as a <see cref="DD_Settings"/> object.</returns>
-    public async Task<DD_Settings> AddSetting(DD_Settings setting)
+    /// <returns>The added setting as a <see cref="Settings"/> object.</returns>
+    public async Task<Settings> AddSetting(Settings setting)
     {
         try
         {
@@ -742,8 +742,8 @@ public class DDService : IDDService
     /// Updates an existing setting in the database.
     /// </summary>
     /// <param name="setting">The setting to update.</param>
-    /// <returns>The updated setting as a <see cref="DD_Settings"/> object.</returns>
-    public async Task<DD_Settings> UpdateSetting(DD_Settings setting)
+    /// <returns>The updated setting as a <see cref="Settings"/> object.</returns>
+    public async Task<Settings> UpdateSetting(Settings setting)
     {
         try
         {
@@ -764,8 +764,8 @@ public class DDService : IDDService
     /// Marks a setting as inactive in the database.
     /// </summary>
     /// <param name="setting">The setting to delete.</param>
-    /// <returns>The deleted setting as a <see cref="DD_Settings"/> object.</returns>
-    public async Task<DD_Settings> DeleteSetting(DD_Settings setting)
+    /// <returns>The deleted setting as a <see cref="Settings"/> object.</returns>
+    public async Task<Settings> DeleteSetting(Settings setting)
     {
         try
         {
@@ -793,7 +793,7 @@ public class DDService : IDDService
     {
         try
         {
-            var setting = new DD_Settings
+            var setting = new Settings
             {
                 CreatedDate = DateTime.Now,
                 IsActive = true,
