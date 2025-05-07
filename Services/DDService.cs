@@ -41,12 +41,12 @@ public class DDService : IDDService
     /// <returns>A string indicating the result of the operation.</returns>
     public async Task<string> GetLinks(string link)
     {
-        // var _setting = new Settings()
+        // var _setting = new NasSettings()
         // {
         //     CreatedDate = DateTime.Now,
         //     IsActive = true,
         //     LastUpdatedDate = DateTime.Now,
-        //     Id = 1, Dd_User = "chim", Dd_Password = "aneurysm"
+        //     Id = 1, UserName = "chim", Password = "aneurysm"
         // };
         //
         // _setting = await AddSetting(_setting);
@@ -136,12 +136,12 @@ public class DDService : IDDService
     /// <returns>A string indicating the result of the operation.</returns>
     public async Task<string> GetLinks(int threadId)
     {
-        // var _setting = new Settings()
+        // var _setting = new NasSettings()
         //  {
         //      CreatedDate = DateTime.Now,
         //      IsActive = true,
         //      LastUpdatedDate = DateTime.Now,
-        //      Id = 1, Dd_User = "chim", Dd_Password = "aneurysm"
+        //      Id = 1, UserName = "chim", Password = "aneurysm"
         //  };
         // _setting = await AddSetting(_setting);
 
@@ -343,8 +343,8 @@ public class DDService : IDDService
 
         if (_setting != null)
         {
-             var _ddUserName = _setting.Dd_User;
-            // var _ddPassword = await _utility.DecryptString(_setting.Dd_Password);
+             var _ddUserName = _setting.UserName;
+            // var _ddPassword = await _utility.DecryptString(_setting.Password);
 
             var clientHandler = new HttpClientHandler
             {
@@ -373,7 +373,7 @@ public class DDService : IDDService
                 var loginData = new Dictionary<string, string>
                 {
                     { "username", _ddUserName }, // Nome utente
-                    { "password", await _utility.DecryptString(_setting.Dd_Password) }, // Password
+                    { "password", await _utility.DecryptString(_setting.Password) }, // Password
                     { "redirect", "index.php" },
                     { "login", "Login" } // Nome del pulsante di login (può variare)
                 };
@@ -725,7 +725,7 @@ public class DDService : IDDService
         {
             setting.CreatedDate = DateTime.Now;
             setting.IsActive = true;
-            setting.Dd_Password = await _utility.EncryptString(setting.Dd_Password);
+            setting.Password = await _utility.EncryptString(setting.Password);
             var settingAdded = await _context.DDSettings.AddAsync(setting);
             await _context.SaveChangesAsync();
 
@@ -798,8 +798,8 @@ public class DDService : IDDService
                 CreatedDate = DateTime.Now,
                 IsActive = true,
                 LastUpdatedDate = DateTime.Now,
-                Dd_User = newSetting.Dd_User,
-                Dd_Password = await _utility.EncryptString(newSetting.Dd_Password)
+                UserName = newSetting.Dd_User,
+                Password = await _utility.EncryptString(newSetting.Dd_Password)
             };
            
                 await _context.DDSettings.AddAsync(setting);

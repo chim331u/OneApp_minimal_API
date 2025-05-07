@@ -3,6 +3,7 @@ using OneApp_minimalApi.AppContext;
 using OneApp_minimalApi.Configurations;
 using OneApp_minimalApi.Contracts.DockerDeployer;
 using OneApp_minimalApi.Interfaces;
+using OneApp_minimalApi.Models;
 
 namespace OneApp_minimalApi.Services;
 
@@ -42,7 +43,7 @@ public class DockerConfigsService : IDockerConfigsService
                     Id = i.Id,
                     Name = i.Name,
                     Description = i.Description,
-                    DockerIcon = i.RestoreProject
+                    DockerIcon = i.Icon
                 })
                 .OrderBy(x => x.Name).ToListAsync();
 
@@ -64,7 +65,7 @@ public class DockerConfigsService : IDockerConfigsService
     {
         try
         {
-            var dockerConfig = await _context.DockerConfig.Include(x=>x.Settings).Where(x=>x.Id==id).FirstOrDefaultAsync();
+            var dockerConfig = await _context.DockerConfig.Include(x=>x.NasSettings).Where(x=>x.Id==id).FirstOrDefaultAsync();
             if (dockerConfig == null)
             {
                 _logger.LogWarning($"Docker configuration with ID {id} not found.");
@@ -91,11 +92,6 @@ public class DockerConfigsService : IDockerConfigsService
         {
             dockerConfigs.Password = await _utilityServices.EncryptString(dockerConfigs.Password);
 
-            if (dockerConfigs.SettingId > 0)
-            {
-                
-            }
-            
             if (string.IsNullOrEmpty(dockerConfigs.ImageVersion))
             {
                 dockerConfigs.ImageVersion = "1.0";
@@ -103,6 +99,24 @@ public class DockerConfigsService : IDockerConfigsService
 
             var _dockerConfig = Mapper.FromDockerConfigDtoToDockerModel(dockerConfigs);
 
+            if (dockerConfigs.SettingNasId == 0)
+            {
+                _dockerConfig.NasSettings = null;    
+            }
+            else
+            {
+                _dockerConfig.NasSettings = await _context.DDSettings.FindAsync(dockerConfigs.SettingNasId);
+            }
+
+            if (dockerConfigs.SettingRegistryId == 0)
+            {
+                _dockerConfig.DockerRepositorySettings = null;    
+            }
+            else
+            {
+                _dockerConfig.DockerRepositorySettings = await _context.DDSettings.FindAsync(dockerConfigs.SettingRegistryId);
+            }
+            
             _context.DockerConfig.Add(_dockerConfig);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Docker configuration added successfully.");
@@ -136,30 +150,41 @@ public class DockerConfigsService : IDockerConfigsService
             existingItem.LastUpdatedDate = DateTime.Now;
 
             if (!string.IsNullOrEmpty(dockerConfigsDto.Name)) existingItem.Name = dockerConfigsDto.Name;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.Description)) existingItem.Description = dockerConfigsDto.Description;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.Note)) existingItem.Note = dockerConfigsDto.Note;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.AppEntryName)) existingItem.AppEntryName = dockerConfigsDto.AppEntryName;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.AppName)) existingItem.AppName = dockerConfigsDto.AppName;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.Branch)) existingItem.Branch = dockerConfigsDto.Branch;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.BuildProject)) existingItem.BuildProject = dockerConfigsDto.BuildProject;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.DockerCommand)) existingItem.DockerCommand = dockerConfigsDto.DockerCommand;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.DockerFileName)) existingItem.DockerFileName = dockerConfigsDto.DockerFileName;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.FolderContainer1)) existingItem.FolderContainer1 = dockerConfigsDto.FolderContainer1;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.FolderContainer2)) existingItem.FolderContainer2 = dockerConfigsDto.FolderContainer2;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.FolderContainer3)) existingItem.FolderContainer3 = dockerConfigsDto.FolderContainer3;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.FolderFrom1)) existingItem.FolderFrom1 = dockerConfigsDto.FolderFrom1;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.FolderFrom2)) existingItem.FolderFrom2 = dockerConfigsDto.FolderFrom2;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.Host)) existingItem.Host = dockerConfigsDto.Host;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.NasLocalFolderPath)) existingItem.NasLocalFolderPath = dockerConfigsDto.NasLocalFolderPath;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.Password)) existingItem.Password = dockerConfigsDto.Password;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.FolderFrom3)) existingItem.FolderFrom3 = dockerConfigsDto.FolderFrom3;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.RestoreProject)) existingItem.RestoreProject = dockerConfigsDto.RestoreProject;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.User)) existingItem.User = dockerConfigsDto.User;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.PortAddress)) existingItem.PortAddress = dockerConfigsDto.PortAddress;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.SkdVersion)) existingItem.SkdVersion = dockerConfigsDto.SkdVersion;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.SolutionFolder)) existingItem.SolutionFolder = dockerConfigsDto.SolutionFolder;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.SolutionRepository)) existingItem.SolutionRepository = dockerConfigsDto.SolutionRepository;
-            if (!string.IsNullOrEmpty(dockerConfigsDto.ImageVersion)) existingItem.ImageVersion = dockerConfigsDto.ImageVersion;
+            existingItem.Description = dockerConfigsDto.Description;
+            existingItem.Note = dockerConfigsDto.Note;
+            existingItem.AppEntryName = dockerConfigsDto.AppEntryName;
+            existingItem.AppName = dockerConfigsDto.AppName;
+            existingItem.Branch = dockerConfigsDto.Branch;
+            existingItem.BuildProject = dockerConfigsDto.BuildProject;
+            existingItem.DockerCommand = dockerConfigsDto.DockerCommand;
+            existingItem.DockerFileName = dockerConfigsDto.DockerFileName;
+            existingItem.FolderContainer1 = dockerConfigsDto.FolderContainer1;
+            existingItem.FolderContainer2 = dockerConfigsDto.FolderContainer2;
+            existingItem.FolderContainer3 = dockerConfigsDto.FolderContainer3;
+            existingItem.FolderFrom1 = dockerConfigsDto.FolderFrom1;
+            existingItem.FolderFrom2 = dockerConfigsDto.FolderFrom2;
+            existingItem.Host = dockerConfigsDto.Host;
+            existingItem.NasLocalFolderPath = dockerConfigsDto.NasLocalFolderPath;
+            existingItem.Password = dockerConfigsDto.Password;
+            existingItem.FolderFrom3 = dockerConfigsDto.FolderFrom3;
+            existingItem.Icon = dockerConfigsDto.Icon;
+            existingItem.User = dockerConfigsDto.User;
+            existingItem.PortAddress = dockerConfigsDto.PortAddress;
+            existingItem.SkdVersion = dockerConfigsDto.SkdVersion;
+            existingItem.SolutionFolder = dockerConfigsDto.SolutionFolder;
+            existingItem.SolutionRepository = dockerConfigsDto.SolutionRepository;
+            existingItem.ImageVersion = dockerConfigsDto.ImageVersion;
+            
+            if (dockerConfigsDto.SettingRegistryId  > 0 )
+            {
+                existingItem.DockerRepositorySettings =
+                    await _context.DDSettings.FindAsync(dockerConfigsDto.SettingRegistryId);    
+            }
+            if (dockerConfigsDto.SettingNasId  > 0 )
+            {
+                existingItem.NasSettings =
+                    await _context.DDSettings.FindAsync(dockerConfigsDto.SettingNasId);    
+            }
 
             _context.DockerConfig.Update(existingItem);
             await _context.SaveChangesAsync();

@@ -55,15 +55,16 @@ namespace OneApp_minimalApi.Models
         public string? FolderFrom3 { get; set; }
         public string? FolderContainer3 { get; set; }
 
-        public string? RestoreProject { get; set; }
+        public string? Icon { get; set; }
         public string? BuildProject { get; set; }
         public string? Branch { get; set; }
         
         public string? ImageVersion { get; set; }
         public bool noCache { get; set; } = false;
         
-        public Settings? Settings { get; set; }
+        public Settings? NasSettings { get; set; }
 
+        public Settings? DockerRepositorySettings { get; set; }
 
         public ICollection<DeployDetail>? DeployDetails { get; set; }
     }

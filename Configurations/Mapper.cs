@@ -33,33 +33,51 @@ public static class Mapper
     /// <returns>A <see cref="DockerConfigsDto"/> DTO.</returns>
     public static DockerConfigsDto FromDockerModelToDto(DockerConfig dockerConfig)
     {
-        var _address = string.Empty;
-        var _alias = string.Empty;
-        var _dockerCommandPath = string.Empty;
-        var _dockerFilePath = string.Empty;
-        var _type = string.Empty;
-        var _setting_User = string.Empty;
-        var _setting_Password = string.Empty;
-        var _settingId = 0;
+        var _nasAddress = string.Empty;
+        var _nasAlias = string.Empty;
+        var _nasDockerCommandPath = string.Empty;
+        var _nasDockerFilePath = string.Empty;
+        var _nasType = string.Empty;
+        var _nasUser = string.Empty;
+        var _nasPassword = string.Empty;
+        var _nasSettingId = 0;
 
-        if (dockerConfig.Settings != null)
+        if (dockerConfig.NasSettings != null)
         {
-            _address = dockerConfig.Settings?.Address;
-            _alias = dockerConfig.Settings?.Address;
-            _dockerCommandPath = dockerConfig.Settings?.DockerCommandPath;
-            _dockerFilePath = dockerConfig.Settings?.DockerFilePath;
-            _type = dockerConfig.Settings?.Type;
-            _setting_User = dockerConfig.Settings?.Dd_User;
-            _setting_Password = dockerConfig.Settings?.Dd_Password;
-            _settingId = dockerConfig.Settings!.Id;
+            _nasAddress = dockerConfig.NasSettings?.Address;
+            _nasAlias = dockerConfig.NasSettings?.Address;
+            _nasDockerCommandPath = dockerConfig.NasSettings?.DockerCommandPath;
+            _nasDockerFilePath = dockerConfig.NasSettings?.DockerFilePath;
+            _nasType = dockerConfig.NasSettings?.Type;
+            _nasUser = dockerConfig.NasSettings?.UserName;
+            _nasPassword = dockerConfig.NasSettings?.Password;
+            _nasSettingId = dockerConfig.NasSettings!.Id;
         }
+
+        var _registryAlias = string.Empty;
+        var _registryAddress = string.Empty;
+        var _registryType = string.Empty;
+        var _registryUser = string.Empty;
+        var _registryPassword = string.Empty;
+        var _registrySettingId = 0;
+
+        if (dockerConfig.DockerRepositorySettings != null)
+        {
+            _registryAlias = dockerConfig.DockerRepositorySettings.Alias;
+            _registryUser = dockerConfig.DockerRepositorySettings.UserName;
+            _registryPassword = dockerConfig.DockerRepositorySettings.Password;
+            _registrySettingId = dockerConfig.DockerRepositorySettings.Id;
+            _registryType = dockerConfig.DockerRepositorySettings.Type;
+            _registryAddress = dockerConfig.DockerRepositorySettings.Address;
+        }
+
 
         return new DockerConfigsDto()
         {
             Id = dockerConfig.Id,
             Name = dockerConfig.Name,
             Description = dockerConfig.Description,
-            RestoreProject = dockerConfig.RestoreProject,
+            Icon = dockerConfig.Icon,
             AppEntryName = dockerConfig.AppEntryName,
             AppName = dockerConfig.AppName,
             Branch = dockerConfig.Branch,
@@ -83,8 +101,12 @@ public static class Mapper
             Note = dockerConfig.Note,
             ImageVersion = dockerConfig.ImageVersion,
             noCache = dockerConfig.noCache,
-            SettingId = _settingId, Address = _address, Alias = _alias, DockerFilePath = _dockerFilePath, DockerCommandPath = _dockerCommandPath,
-            Type = _type, Setting_User = _setting_User, Setting_Password = _setting_Password
+            SettingNasId = _nasSettingId, NasAddress = _nasAddress, NasAlias = _nasAlias,
+            NasDockerFilePath = _nasDockerFilePath, NasDockerCommandPath = _nasDockerCommandPath,
+            NasType = _nasType, NasUser = _nasUser, NasPassword = _nasPassword,
+            RegistryAddress = _registryAddress,
+            RegistryAlias = _registryAlias, RegistryPassword = _registryPassword, RegistryType = _registryType,
+            SettingRegistryId = _registrySettingId, RegistryUser = _registryUser
         };
     }
 
@@ -103,7 +125,7 @@ public static class Mapper
             LastUpdatedDate = DateTime.Now,
             Name = dockerConfigsDto.Name,
             Description = dockerConfigsDto.Description,
-            RestoreProject = dockerConfigsDto.RestoreProject,
+            Icon = dockerConfigsDto.Icon,
             AppEntryName = dockerConfigsDto.AppEntryName,
             AppName = dockerConfigsDto.AppName,
             Branch = dockerConfigsDto.Branch,
@@ -126,15 +148,24 @@ public static class Mapper
             User = dockerConfigsDto.User,
             Note = dockerConfigsDto.Note,
             ImageVersion = dockerConfigsDto.ImageVersion, noCache = dockerConfigsDto.noCache,
-            Settings = new Settings()
+            NasSettings = new Settings()
             {
-                Id = dockerConfigsDto.SettingId,
-                Address = dockerConfigsDto.Address,
-                Alias = dockerConfigsDto.Alias,
-                DockerCommandPath = dockerConfigsDto.DockerCommandPath,
-                DockerFilePath = dockerConfigsDto.DockerFilePath,
-                Type = dockerConfigsDto.Type, Dd_User = dockerConfigsDto.Setting_User,
-                Dd_Password = dockerConfigsDto.Setting_Password
+                Id = dockerConfigsDto.SettingNasId,
+                Address = dockerConfigsDto.NasAddress,
+                Alias = dockerConfigsDto.NasAlias,
+                DockerCommandPath = dockerConfigsDto.NasDockerCommandPath,
+                DockerFilePath = dockerConfigsDto.NasDockerFilePath,
+                Type = dockerConfigsDto.NasType, UserName = dockerConfigsDto.NasUser,
+                Password = dockerConfigsDto.NasPassword
+            },
+            DockerRepositorySettings = new Settings()
+            {
+                Id = dockerConfigsDto.SettingRegistryId,
+                Address = dockerConfigsDto.RegistryAddress,
+                Alias = dockerConfigsDto.RegistryAlias,
+                Type = dockerConfigsDto.RegistryType,
+                UserName = dockerConfigsDto.RegistryUser,
+                Password = dockerConfigsDto.RegistryPassword
             }
         };
     }
@@ -167,8 +198,8 @@ public static class Mapper
             Address = settingsDto.Address,
             Alias = settingsDto.Alias,
             DockerCommandPath = settingsDto.DockerCommandPath,
-            Dd_Password = settingsDto.Password,
-            Dd_User = settingsDto.User,
+            Password = settingsDto.Password,
+            UserName = settingsDto.User,
             DockerFilePath = settingsDto.DockerFilePath,
             Note = settingsDto.Note, Type = settingsDto.Type
         };
@@ -181,7 +212,7 @@ public static class Mapper
             Id = settings.Id, Address = settings.Address,
             Alias = settings.Alias, DockerCommandPath = settings.DockerCommandPath,
             DockerFilePath = settings.DockerFilePath, Note = settings.Note, Type = settings.Type,
-            Password = settings.Dd_Password, User = settings.Dd_User
+            Password = settings.Password, User = settings.UserName
         };
     }
 }

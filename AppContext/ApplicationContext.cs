@@ -23,7 +23,7 @@ namespace OneApp_minimalApi.AppContext
         public DbSet<Configs> Configuration { get; set; }
 
         /// <summary>
-        /// Gets or sets the DbSet representing the collection of Settings in the database.
+        /// Gets or sets the DbSet representing the collection of NasSettings in the database.
         /// </summary>
         public DbSet<Settings> DDSettings { get; set; }
         

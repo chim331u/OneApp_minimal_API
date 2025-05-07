@@ -21,7 +21,7 @@ public class SettingDto
     public string Dd_Password { get; set; }
 
     /// <summary>
-    /// Get or sets the Alias for the setting.
+    /// Get or sets the NasAlias for the setting.
     /// </summary>
     public string? Alias { get; set; }
 }

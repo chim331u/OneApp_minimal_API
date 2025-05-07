@@ -257,7 +257,7 @@ public class ConfigsService : IConfigsService
             setting.CreatedDate = DateTime.Now;
             setting.IsActive = true;
             setting.LastUpdatedDate = DateTime.Now;
-            setting.Dd_Password = await _utilityServices.EncryptString(settingsDto.Password);
+            setting.Password = await _utilityServices.EncryptString(settingsDto.Password);
 
             await _context.DDSettings.AddAsync(setting);
             await _context.SaveChangesAsync();
@@ -286,16 +286,22 @@ public class ConfigsService : IConfigsService
 
             existingItem.LastUpdatedDate = DateTime.Now;
 
-            if (!string.IsNullOrEmpty(settings.User)) existingItem.Dd_User = settings.User;
-            //TODO: check psw entryption
-            if (!string.IsNullOrEmpty(settings.Password)) existingItem.Dd_Password = settings.Password;
+            if (!string.IsNullOrEmpty(settings.User)) existingItem.UserName = settings.User;
+
+            if (!settings.Password.Equals(existingItem.Password))
+            {
+                existingItem.Password = await _utilityServices.EncryptString(settings.Password);    
+            }
+            
             if (!string.IsNullOrEmpty(settings.Alias)) existingItem.Alias = settings.Alias;
             existingItem.Address = settings.Address;
             existingItem.Type = settings.Type;
             existingItem.DockerCommandPath = settings.DockerCommandPath;
             existingItem.DockerFilePath = settings.DockerFilePath;
             existingItem.Note = settings.Note;
-
+            existingItem.Type = settings.Type;
+            existingItem.Note = settings.Note;
+            
             _context.DDSettings.Update(existingItem);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Setting updated successfully.");
