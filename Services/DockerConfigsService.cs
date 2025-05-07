@@ -65,7 +65,9 @@ public class DockerConfigsService : IDockerConfigsService
     {
         try
         {
-            var dockerConfig = await _context.DockerConfig.Include(x=>x.NasSettings).Where(x=>x.Id==id).FirstOrDefaultAsync();
+            var dockerConfig = await _context.DockerConfig.Include(x=>x.NasSettings)
+                .Include(x=>x.DockerRepositorySettings)
+                .Where(x=>x.Id==id).FirstOrDefaultAsync();
             if (dockerConfig == null)
             {
                 _logger.LogWarning($"Docker configuration with ID {id} not found.");
@@ -156,7 +158,7 @@ public class DockerConfigsService : IDockerConfigsService
             existingItem.AppName = dockerConfigsDto.AppName;
             existingItem.Branch = dockerConfigsDto.Branch;
             existingItem.BuildProject = dockerConfigsDto.BuildProject;
-            existingItem.DockerCommand = dockerConfigsDto.DockerCommand;
+            // existingItem.DockerCommand = dockerConfigsDto.DockerCommand;
             existingItem.DockerFileName = dockerConfigsDto.DockerFileName;
             existingItem.FolderContainer1 = dockerConfigsDto.FolderContainer1;
             existingItem.FolderContainer2 = dockerConfigsDto.FolderContainer2;
@@ -165,15 +167,16 @@ public class DockerConfigsService : IDockerConfigsService
             existingItem.FolderFrom2 = dockerConfigsDto.FolderFrom2;
             existingItem.Host = dockerConfigsDto.Host;
             existingItem.NasLocalFolderPath = dockerConfigsDto.NasLocalFolderPath;
-            existingItem.Password = dockerConfigsDto.Password;
+            // existingItem.Password = dockerConfigsDto.Password;
             existingItem.FolderFrom3 = dockerConfigsDto.FolderFrom3;
             existingItem.Icon = dockerConfigsDto.Icon;
-            existingItem.User = dockerConfigsDto.User;
+            // existingItem.User = dockerConfigsDto.User;
             existingItem.PortAddress = dockerConfigsDto.PortAddress;
             existingItem.SkdVersion = dockerConfigsDto.SkdVersion;
             existingItem.SolutionFolder = dockerConfigsDto.SolutionFolder;
             existingItem.SolutionRepository = dockerConfigsDto.SolutionRepository;
             existingItem.ImageVersion = dockerConfigsDto.ImageVersion;
+            existingItem.noCache = dockerConfigsDto.noCache;
             
             if (dockerConfigsDto.SettingRegistryId  > 0 )
             {

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using OneApp_minimalApi.AppContext;
 using OneApp_minimalApi.Contracts;
@@ -32,10 +33,9 @@ public class DockerCommandService : IDockerCommandService
         _logger = logger;
         _utilityServices = utilityServices;
     }
-    
+
     #region Commands
-    
-    
+
     /// <summary>
     /// Builds a Docker image for a specific deployment.
     /// </summary>
@@ -79,7 +79,7 @@ public class DockerCommandService : IDockerCommandService
 
         return new DockerCommandResponse<string>(runningContainerCommand, "RunningContainerCommand", true);
     }
-    
+
     /// <summary>
     /// Retrieves the list of Docker images in json format.
     /// </summary>
@@ -92,9 +92,11 @@ public class DockerCommandService : IDockerCommandService
 
         return new DockerCommandResponse<string>(getImagesCommand, "GetImageListCommand", true);
     }
+
     public async Task<DockerCommandResponse<string>> GetPushImageCommand(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
         if (dockerConfig == null)
         {
             _logger.LogWarning("No configuration found");
@@ -102,19 +104,27 @@ public class DockerCommandService : IDockerCommandService
                 "FindDockerConfig", false);
         }
 
-        //todo: retrive from setting
-        var my_docker_repo_username = "chim3312";
-        
-        var pushImagesCommand = $"docker push {my_docker_repo_username}/{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
+        if (dockerConfig.DockerRepositorySettings == null)
+        {
+            _logger.LogWarning("No Docker repository settings found");
+            return new DockerCommandResponse<string>($"No Docker repository settings found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        var my_docker_repo_username = dockerConfig.DockerRepositorySettings.UserName;
+
+        var pushImagesCommand =
+            $"docker push {my_docker_repo_username}/{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
 
         _logger.LogInformation($"Docker push command =  {pushImagesCommand}");
 
         return new DockerCommandResponse<string>(pushImagesCommand, "GetPushImageCommand", true);
     }
-    
+
     public async Task<DockerCommandResponse<string>> GetLoginDockerRegistryCommand(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
         if (dockerConfig == null)
         {
             _logger.LogWarning("No configuration found");
@@ -122,10 +132,17 @@ public class DockerCommandService : IDockerCommandService
                 "FindDockerConfig", false);
         }
 
-        //todo: retrive from setting
-        var my_docker_repo_username = "chim3312";
-        var my_docker_repo_password = "chim3312";
-        
+        if (dockerConfig.DockerRepositorySettings == null)
+        {
+            _logger.LogWarning("No Docker repository settings found");
+            return new DockerCommandResponse<string>($"No Docker repository settings found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        var my_docker_repo_username = dockerConfig.DockerRepositorySettings.UserName;
+        var my_docker_repo_password =
+            await _utilityServices.DecryptString(dockerConfig.DockerRepositorySettings.Password);
+
         var dockingRegistryLogin = $"docker login -u {my_docker_repo_username} -p {my_docker_repo_password} docker.io";
 
         _logger.LogInformation($"Docker registry login command =  {dockingRegistryLogin}");
@@ -135,7 +152,10 @@ public class DockerCommandService : IDockerCommandService
 
     public async Task<DockerCommandResponse<string>> GetTagImageCommand(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig
+            .Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
+
         if (dockerConfig == null)
         {
             _logger.LogWarning("No configuration found");
@@ -143,16 +163,24 @@ public class DockerCommandService : IDockerCommandService
                 "FindDockerConfig", false);
         }
 
-        //todo: retrive from setting
-        var my_docker_repo_username = "chim3312";
-        
-        var dockingTagImage = $"docker tag {dockerConfig.AppName}_image {my_docker_repo_username}/{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
+
+        if (dockerConfig.DockerRepositorySettings == null)
+        {
+            _logger.LogWarning("No Docker repository settings found");
+            return new DockerCommandResponse<string>($"No Docker repository settings found for id {deployId}",
+                "FindDockerConfig", false);
+        }
+
+        var my_docker_repo_username = dockerConfig.DockerRepositorySettings.UserName;
+
+        var dockingTagImage =
+            $"docker tag {dockerConfig.AppName}_image {my_docker_repo_username}/{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
 
         _logger.LogInformation($"Tag Image command =  {dockingTagImage}");
 
         return new DockerCommandResponse<string>(dockingTagImage, "GetPushImageCommand", true);
     }
-    
+
     //TODO: tag the image
     public async Task<DockerCommandResponse<string>> GetRunContainerCommand(int deployId)
     {
@@ -214,9 +242,8 @@ public class DockerCommandService : IDockerCommandService
         return new DockerCommandResponse<string>(dockerCommand, "RunImageCommand", true);
     }
 
-    
     #endregion
-    
+
 
     /// <summary>
     /// Sends an SSH command to a Docker container.
@@ -226,25 +253,37 @@ public class DockerCommandService : IDockerCommandService
     /// <returns>A <see cref="DockerCommandResponse{T}"/> containing the result of the command.</returns>
     public async Task<DockerCommandResponse<string>> SendSSHCommand(int deployId, string command)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig.Include(x => x.NasSettings).Where(x => x.Id == deployId)
+            .FirstOrDefaultAsync();
 
         if (dockerConfig == null) return null!;
 
-        using var client = new SshClient(dockerConfig.Host, dockerConfig.User,
-            await _utilityServices.DecryptString(dockerConfig.Password));
-        client.Connect();
-
-        _logger.LogInformation($"SSH Command '{command}' is sent...");
-
-        var cmd = client.RunCommand(command);
-        if (!string.IsNullOrEmpty(cmd.Error))
+        if (dockerConfig.NasSettings != null)
         {
-            _logger.LogError($"SSH Error command '{command}' - {cmd.Error}");
-            return new DockerCommandResponse<string>(cmd.Error, command, false);
+            if (command.Contains("docker"))
+            {
+                command = command.Replace("docker", dockerConfig.NasSettings.DockerCommandPath);
+            }
+
+            using var client = new SshClient(dockerConfig.Host, dockerConfig.NasSettings.UserName,
+                await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
+            client.Connect();
+
+            _logger.LogInformation($"SSH Command '{command}' is sent...");
+
+            var cmd = client.RunCommand(command);
+            if (!string.IsNullOrEmpty(cmd.Error))
+            {
+                _logger.LogError($"SSH Error command '{command}' - {cmd.Error}");
+                return new DockerCommandResponse<string>(cmd.Error, command, false);
+            }
+
+            _logger.LogInformation($"SSH Command result: {cmd.Result}");
+            return new DockerCommandResponse<string>(cmd.Result, command, true);
         }
 
-        _logger.LogInformation($"SSH Command result: {cmd.Result}");
-        return new DockerCommandResponse<string>(cmd.Result, command, true);
+        return new DockerCommandResponse<string>($"No Docker repository settings found for id {deployId}",
+            "FindDockerConfig", false);
     }
 
     /// <summary>
@@ -407,7 +446,9 @@ public class DockerCommandService : IDockerCommandService
     /// <returns>DockerCommand Response</returns>
     public async Task<DockerCommandResponse<string>> UploadDockerFile(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
+
         if (dockerConfig == null)
         {
             _logger.LogWarning("No configuration found");
@@ -417,19 +458,20 @@ public class DockerCommandService : IDockerCommandService
 
         try
         {
-            using (var client = new SftpClient(dockerConfig.Host, dockerConfig.User,
-                       await _utilityServices.DecryptString(dockerConfig.Password)))
-            {
-                client.Connect();
-                _logger.LogInformation($"Client connected to NAS");
-
-                await using (FileStream fs = File.OpenRead(dockerConfig.DockerFileName))
+            if (dockerConfig.NasSettings != null)
+                using (var client = new SftpClient(dockerConfig.Host, dockerConfig.NasSettings.UserName,
+                           await _utilityServices.DecryptString(dockerConfig.NasSettings.Password)))
                 {
-                    //todo: retrive from DockerSettings
-                    var _nasPath = $"/root/{dockerConfig.DockerFileName}";
-                    client.UploadFile(fs, _nasPath);
+                    client.Connect();
+                    _logger.LogInformation($"Client connected to NAS");
+
+                    await using (FileStream fs = File.OpenRead(dockerConfig.DockerFileName))
+                    {
+               
+                        var _nasPath = $"{dockerConfig.NasSettings.DockerFilePath}{dockerConfig.DockerFileName}";
+                        client.UploadFile(fs, _nasPath);
+                    }
                 }
-            }
 
             _logger.LogInformation($"Docker file uploaded to NAS ");
             return new DockerCommandResponse<string>("Connected to NAS, Docker File uploaded", "UploadDockerFile",
@@ -441,10 +483,12 @@ public class DockerCommandService : IDockerCommandService
             return new DockerCommandResponse<string>(ex.Message, "UploadDockerFile", false);
         }
     }
-    
+
     public async Task<DockerCommandResponse<string>> GetRemoteRunningContainers(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
+
         if (dockerConfig == null)
         {
             _logger.LogWarning("No configuration found");
@@ -456,14 +500,9 @@ public class DockerCommandService : IDockerCommandService
 
         if (!containersCommandResult.IsSuccess)
         {
-            _logger.LogWarning($"Unable to retrive Docker container command");
+            _logger.LogWarning($"Unable to retrieve Docker container command");
             return new DockerCommandResponse<string>("Unable to retrieve Docker container command",
                 "GetRunningContainersCommand", false);
-        }
-
-        if (containersCommandResult.Data.Contains("docker"))
-        {
-            containersCommandResult.Data = containersCommandResult.Data.Replace("docker", dockerConfig.DockerCommand);
         }
 
         _logger.LogInformation($"Docker running containers get command =  {containersCommandResult.Data}");
@@ -474,7 +513,9 @@ public class DockerCommandService : IDockerCommandService
 
     public async Task<DockerCommandResponse<string>> GetRemoteImageList(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
+
 
         if (dockerConfig == null)
         {
@@ -486,14 +527,9 @@ public class DockerCommandService : IDockerCommandService
         var imageCommandResult = await GetImageListCommand();
         if (!imageCommandResult.IsSuccess)
         {
-            _logger.LogWarning($"Unable to retrive Docker images list ");
-            return new DockerCommandResponse<string>("Unable to retrive Docker image list command",
+            _logger.LogWarning($"Unable to retrieve Docker images list ");
+            return new DockerCommandResponse<string>("Unable to retrieve Docker image list command",
                 "GetImageListCommand", false);
-        }
-
-        if (imageCommandResult.Data.Contains("docker"))
-        {
-            imageCommandResult.Data = imageCommandResult.Data.Replace("docker", dockerConfig.DockerCommand);
         }
 
         _logger.LogInformation($"Docker images list =  {imageCommandResult.Data}");
@@ -504,7 +540,9 @@ public class DockerCommandService : IDockerCommandService
 
     public async Task<DockerCommandResponse<string>> RemoveRemoteRunningContainers(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
+
         if (dockerConfig == null)
         {
             _logger.LogWarning("No configuration found");
@@ -516,8 +554,8 @@ public class DockerCommandService : IDockerCommandService
 
         if (!runningContainer.IsSuccess)
         {
-            _logger.LogWarning($"Unable to retrive remote running container");
-            return new DockerCommandResponse<string>("Unable to retrive remote running container",
+            _logger.LogWarning($"Unable to retrieve remote running container");
+            return new DockerCommandResponse<string>("Unable to retrieve remote running container",
                 "GetRemoteRunningContainers", false);
         }
 
@@ -546,25 +584,35 @@ public class DockerCommandService : IDockerCommandService
         _logger.LogInformation(
             $"Stopping and remove container {runningContainerToDelete.Id} - {runningContainerToDelete.Names}");
 
-        var containerRemoveResponse = await SendSSHCommand(deployId,
-            $"{dockerConfig.DockerCommand} rm --force {runningContainerToDelete.Id}");
-
-        if (!containerRemoveResponse.IsSuccess)
+        if (dockerConfig.NasSettings != null)
         {
+            var containerRemoveResponse = await SendSSHCommand(deployId,
+                $"{dockerConfig.NasSettings.DockerCommandPath} rm --force {runningContainerToDelete.Id}");
+
+            if (!containerRemoveResponse.IsSuccess)
+            {
+                runningContainer = null;
+                _logger.LogError($"Error removing container: {containerRemoveResponse.Data}");
+                return new DockerCommandResponse<string>(containerRemoveResponse.Data, $"Error removing container",
+                    false);
+            }
+
             runningContainer = null;
-            _logger.LogError($"Error removing container: {containerRemoveResponse.Data}");
-            return new DockerCommandResponse<string>(containerRemoveResponse.Data, $"Error removing container", false);
+            _logger.LogInformation(
+                $"Container removed: {runningContainerToDelete.Id} - {runningContainerToDelete.Names}");
+            return new DockerCommandResponse<string>(containerRemoveResponse.Data,
+                $"Container removed: {runningContainerToDelete.Id} - {runningContainerToDelete.Names}", true);
         }
 
-        runningContainer = null;
-        _logger.LogInformation($"Container removed: {runningContainerToDelete.Id} - {runningContainerToDelete.Names}");
-        return new DockerCommandResponse<string>(containerRemoveResponse.Data,
-            $"Container removed: {runningContainerToDelete.Id} - {runningContainerToDelete.Names}", true);
+        _logger.LogWarning("No Docker repository settings found");
+        return new DockerCommandResponse<string>($"No Docker repository settings found for id {deployId}",
+            "FindDockerConfig", false);
     }
 
     public async Task<DockerCommandResponse<string>> RemoveRemoteImagesList(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
 
         if (dockerConfig == null)
         {
@@ -577,8 +625,8 @@ public class DockerCommandService : IDockerCommandService
 
         if (!imagesList.IsSuccess)
         {
-            _logger.LogWarning($"Unable to retrive remote images list");
-            return new DockerCommandResponse<string>("Unable to retrive remote images list",
+            _logger.LogWarning($"Unable to retrieve remote images list");
+            return new DockerCommandResponse<string>("Unable to retrieve remote images list",
                 "RemoveRemoteImagesList", false);
         }
 
@@ -607,17 +655,22 @@ public class DockerCommandService : IDockerCommandService
                     ($"Removing image {imageModel.Id} - {imageModel.Repository} - {imageModel.Tag} {Environment.NewLine}");
 
                 //var response = ssh.RunCommand($@"{variables.DockerCommand} rmi {imageModel.Id} --force");
-                var removeImageResponse =
-                    await SendSSHCommand(deployId, $@"{dockerConfig.DockerCommand} rmi {imageModel.Id} --force");
+                if (dockerConfig.NasSettings != null)
+                {
+                    var removeImageResponse =
+                        await SendSSHCommand(deployId,
+                            $@"{dockerConfig.NasSettings.DockerCommandPath} rmi {imageModel.Id} --force");
 
-                if (!removeImageResponse.IsSuccess)
-                {
-                    logtoreturn +=
-                        ($"Error removing image {imageModel.Id}: {removeImageResponse.Data} {Environment.NewLine}");
-                }
-                else
-                {
-                    logtoreturn += ($"Image removed: {imageModel.Id} - {imageModel.Repository} {Environment.NewLine}");
+                    if (!removeImageResponse.IsSuccess)
+                    {
+                        logtoreturn +=
+                            ($"Error removing image {imageModel.Id}: {removeImageResponse.Data} {Environment.NewLine}");
+                    }
+                    else
+                    {
+                        logtoreturn +=
+                            ($"Image removed: {imageModel.Id} - {imageModel.Repository} {Environment.NewLine}");
+                    }
                 }
             }
 
@@ -632,7 +685,8 @@ public class DockerCommandService : IDockerCommandService
 
     public async Task<DockerCommandResponse<string>> BuildImage(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
 
         if (dockerConfig == null)
         {
@@ -640,7 +694,7 @@ public class DockerCommandService : IDockerCommandService
             return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
                 "FindDockerConfig", false);
         }
-        
+
         var buildCommand = await GetBuildCommand(deployId);
         if (!buildCommand.IsSuccess)
         {
@@ -650,11 +704,7 @@ public class DockerCommandService : IDockerCommandService
         }
 
         _logger.LogWarning($"Build command: {buildCommand.Data} sent: please wait for the result");
-        
-        if (buildCommand.Data.Contains("docker"))
-        {
-            buildCommand.Data = buildCommand.Data.Replace("docker", dockerConfig.DockerCommand);
-        }
+
         var buildResult = await SendSSHCommand(deployId, buildCommand.Data);
 
         if (!buildResult.IsSuccess)
@@ -666,7 +716,7 @@ public class DockerCommandService : IDockerCommandService
 
         return new DockerCommandResponse<string>(buildResult.Data, "BuildImage", true);
     }
-    
+
     public async Task<DockerCommandResponse<string>> RunContainer(int deployId)
     {
         var runCommand = await GetRunContainerCommand(deployId);
@@ -678,8 +728,9 @@ public class DockerCommandService : IDockerCommandService
         }
 
         _logger.LogWarning($"Run command: {runCommand.Data} sent: Container is starting, please wait for the result");
-        
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+
+        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
 
         if (dockerConfig == null)
         {
@@ -687,11 +738,7 @@ public class DockerCommandService : IDockerCommandService
             return new DockerCommandResponse<string>($"No configuration found for id {deployId}",
                 "FindDockerConfig", false);
         }
-        
-        if (runCommand.Data.Contains("docker"))
-        {
-            runCommand.Data = runCommand.Data.Replace("docker", dockerConfig.DockerCommand);
-        }
+
         var runResult = await SendSSHCommand(deployId, runCommand.Data);
 
         if (!runResult.IsSuccess)
@@ -702,12 +749,13 @@ public class DockerCommandService : IDockerCommandService
         }
 
         return new DockerCommandResponse<string>(runResult.Data, "RunImage", true);
-        
     }
-    
+
     public async Task<DockerCommandResponse<string>> PushImage(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.FindAsync(deployId);
+        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
+
 
         if (dockerConfig == null)
         {
@@ -717,12 +765,9 @@ public class DockerCommandService : IDockerCommandService
         }
 
         var loginCommand = await GetLoginDockerRegistryCommand(deployId);
-        if (loginCommand.Data.Contains("docker"))
-        {
-            loginCommand.Data = loginCommand.Data.Replace("docker", dockerConfig.DockerCommand);
-        }
+
         _logger.LogInformation($"Login registry command = {loginCommand.Data} ");
-        
+
         var loginResult = await SendSSHCommand(deployId, loginCommand.Data);
         if (!loginResult.IsSuccess)
         {
@@ -730,12 +775,10 @@ public class DockerCommandService : IDockerCommandService
             return new DockerCommandResponse<string>(loginResult.Data,
                 "Unable to Login to Docker Registry", false);
         }
+
         _logger.LogInformation($"Login to docker registry: {loginResult.Data} ");
         var tagCommand = await GetTagImageCommand(deployId);
-        if (tagCommand.Data.Contains("docker"))
-        {
-            tagCommand.Data = tagCommand.Data.Replace("docker", dockerConfig.DockerCommand);
-        }
+
         _logger.LogInformation($"Tag command = {tagCommand.Data} ");
         var tagResult = await SendSSHCommand(deployId, tagCommand.Data);
         if (!tagResult.IsSuccess)
@@ -744,16 +787,13 @@ public class DockerCommandService : IDockerCommandService
             return new DockerCommandResponse<string>(tagResult.Data,
                 "Unable to Tag image", false);
         }
+
         _logger.LogInformation($"Image tagged: {tagResult.Data} ");
-        
+
         var pushCommand = await GetPushImageCommand(deployId);
-        if (pushCommand.Data.Contains("docker"))
-        {
-            pushCommand.Data = pushCommand.Data.Replace("docker", dockerConfig.DockerCommand);
-        }
-        
+
         _logger.LogInformation($"Push command = {pushCommand.Data} ");
-        
+
         var pushResult = await SendSSHCommand(deployId, pushCommand.Data);
 
         if (!pushResult.IsSuccess)
@@ -765,8 +805,5 @@ public class DockerCommandService : IDockerCommandService
 
         _logger.LogInformation($"Image Pushed : {pushCommand.Data} ");
         return new DockerCommandResponse<string>(pushResult.Data, "PushImage", true);
-        
     }
-    
-    
 }

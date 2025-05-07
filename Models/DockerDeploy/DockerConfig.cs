@@ -12,8 +12,8 @@ namespace OneApp_minimalApi.Models
 
         public string? Description { get; set; }
 
-        [Required]
-        public string DockerCommand { get; set; }
+        // [Required]
+        // public string DockerCommand { get; set; }
 
         [Required]
         public string SolutionRepository { get; set; }
@@ -29,11 +29,11 @@ namespace OneApp_minimalApi.Models
         [Required]
         public string Host { get; set; }
 
-        [Required]
-        public string User { get; set; }
-
-        [Required]
-        public string Password { get; set; }
+        // [Required]
+        // public string User { get; set; }
+        //
+        // [Required]
+        // public string Password { get; set; }
 
         [Required]
         public string PortAddress { get; set; }
