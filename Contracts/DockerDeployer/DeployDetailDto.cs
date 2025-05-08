@@ -43,5 +43,5 @@ public class DeployDetailDto
     /// <summary>
     /// Gets or sets additional notes about the deployment.
     /// </summary>
-    public string Note { get; set; }
+    public string? Note { get; set; }
 }

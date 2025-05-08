@@ -99,27 +99,27 @@ public class DockerConfigsService : IDockerConfigsService
                 dockerConfigs.ImageVersion = "1.0";
             }
 
-            var _dockerConfig = Mapper.FromDockerConfigDtoToDockerModel(dockerConfigs);
+            var dockerConfig = Mapper.FromDockerConfigDtoToDockerModel(dockerConfigs);
 
             if (dockerConfigs.SettingNasId == 0)
             {
-                _dockerConfig.NasSettings = null;    
+                dockerConfig.NasSettings = null;    
             }
             else
             {
-                _dockerConfig.NasSettings = await _context.DDSettings.FindAsync(dockerConfigs.SettingNasId);
+                dockerConfig.NasSettings = await _context.DDSettings.FindAsync(dockerConfigs.SettingNasId);
             }
 
             if (dockerConfigs.SettingRegistryId == 0)
             {
-                _dockerConfig.DockerRepositorySettings = null;    
+                dockerConfig.DockerRepositorySettings = null;    
             }
             else
             {
-                _dockerConfig.DockerRepositorySettings = await _context.DDSettings.FindAsync(dockerConfigs.SettingRegistryId);
+                dockerConfig.DockerRepositorySettings = await _context.DDSettings.FindAsync(dockerConfigs.SettingRegistryId);
             }
             
-            _context.DockerConfig.Add(_dockerConfig);
+            _context.DockerConfig.Add(dockerConfig);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Docker configuration added successfully.");
 

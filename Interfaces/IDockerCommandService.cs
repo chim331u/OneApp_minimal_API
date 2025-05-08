@@ -11,6 +11,8 @@ public interface IDockerCommandService
     Task<DockerCommandResponse<string>> GetImageListCommand();
     Task<DockerCommandResponse<string>> GetRunContainerCommand(int deployId);
     Task<DockerCommandResponse<string>> GetPushImageCommand(int deployId);
+    Task<DockerCommandResponse<string>> GetTagImageCommand(int deployId);
+    Task<DockerCommandResponse<string>> GetLoginDockerRegistryCommand(int deployId);
 
     #endregion
 

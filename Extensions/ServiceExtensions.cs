@@ -43,6 +43,7 @@ namespace OneApp_minimalApi.Extensions
             builder.Services.AddScoped<IDockerConfigsService, DockerConfigsService>();
             builder.Services.AddScoped<IDeployDetailService, DeployDetailService>();
             builder.Services.AddScoped<IDockerCommandService, DockerCommandService>();
+            builder.Services.AddScoped<ISettingsService, SettingsService>();
 
             // Register exception handler
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

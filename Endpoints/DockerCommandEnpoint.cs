@@ -133,6 +133,18 @@ public static class DockerCommandEnpoint
             return Results.Ok(commandResult);
         });
         
+        app.MapGet("/GetTagImageCommand/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.GetTagImageCommand(id);
+            return Results.Ok(commandResult);
+        });
+        
+        app.MapGet("/GetLoginDockerRegistryCommand/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.GetLoginDockerRegistryCommand(id);
+            return Results.Ok(commandResult);
+        });
+        
         return app;
     }
 }

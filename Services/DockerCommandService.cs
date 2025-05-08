@@ -111,10 +111,10 @@ public class DockerCommandService : IDockerCommandService
                 "FindDockerConfig", false);
         }
 
-        var my_docker_repo_username = dockerConfig.DockerRepositorySettings.UserName;
+        var myDockerRepoUsername = dockerConfig.DockerRepositorySettings.UserName;
 
         var pushImagesCommand =
-            $"docker push {my_docker_repo_username}/{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
+            $"docker push {myDockerRepoUsername}/{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
 
         _logger.LogInformation($"Docker push command =  {pushImagesCommand}");
 
@@ -139,11 +139,11 @@ public class DockerCommandService : IDockerCommandService
                 "FindDockerConfig", false);
         }
 
-        var my_docker_repo_username = dockerConfig.DockerRepositorySettings.UserName;
-        var my_docker_repo_password =
+        var myDockerRepoUsername = dockerConfig.DockerRepositorySettings.UserName;
+        var myDockerRepoPassword =
             await _utilityServices.DecryptString(dockerConfig.DockerRepositorySettings.Password);
 
-        var dockingRegistryLogin = $"docker login -u {my_docker_repo_username} -p {my_docker_repo_password} docker.io";
+        var dockingRegistryLogin = $"docker login -u {myDockerRepoUsername} -p {myDockerRepoPassword} docker.io";
 
         _logger.LogInformation($"Docker registry login command =  {dockingRegistryLogin}");
 
@@ -171,10 +171,10 @@ public class DockerCommandService : IDockerCommandService
                 "FindDockerConfig", false);
         }
 
-        var my_docker_repo_username = dockerConfig.DockerRepositorySettings.UserName;
+        var myDockerRepoUsername = dockerConfig.DockerRepositorySettings.UserName;
 
         var dockingTagImage =
-            $"docker tag {dockerConfig.AppName}_image {my_docker_repo_username}/{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
+            $"docker tag {dockerConfig.AppName}_image {myDockerRepoUsername}/{dockerConfig.AppName}_image:{dockerConfig.ImageVersion}";
 
         _logger.LogInformation($"Tag Image command =  {dockingTagImage}");
 
@@ -447,6 +447,7 @@ public class DockerCommandService : IDockerCommandService
     public async Task<DockerCommandResponse<string>> UploadDockerFile(int deployId)
     {
         var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Include(x => x.NasSettings)
             .Where(x => x.Id == deployId).FirstOrDefaultAsync();
 
         if (dockerConfig == null)
@@ -459,19 +460,16 @@ public class DockerCommandService : IDockerCommandService
         try
         {
             if (dockerConfig.NasSettings != null)
-                using (var client = new SftpClient(dockerConfig.Host, dockerConfig.NasSettings.UserName,
-                           await _utilityServices.DecryptString(dockerConfig.NasSettings.Password)))
-                {
-                    client.Connect();
-                    _logger.LogInformation($"Client connected to NAS");
+            {
+                using var client = new SftpClient(dockerConfig.Host, dockerConfig.NasSettings.UserName,
+                    await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
+                client.Connect();
+                _logger.LogInformation($"Client connected to NAS");
 
-                    await using (FileStream fs = File.OpenRead(dockerConfig.DockerFileName))
-                    {
-               
-                        var _nasPath = $"{dockerConfig.NasSettings.DockerFilePath}{dockerConfig.DockerFileName}";
-                        client.UploadFile(fs, _nasPath);
-                    }
-                }
+                await using FileStream fs = File.OpenRead(dockerConfig.DockerFileName);
+                var nasPath = $"{dockerConfig.NasSettings.DockerFilePath}{dockerConfig.DockerFileName}";
+                client.UploadFile(fs, nasPath);
+            }
 
             _logger.LogInformation($"Docker file uploaded to NAS ");
             return new DockerCommandResponse<string>("Connected to NAS, Docker File uploaded", "UploadDockerFile",
@@ -487,7 +485,8 @@ public class DockerCommandService : IDockerCommandService
     public async Task<DockerCommandResponse<string>> GetRemoteRunningContainers(int deployId)
     {
         var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
-            .Where(x => x.Id == deployId).FirstOrDefaultAsync();
+            .Where(x => x.Id == deployId)
+            .FirstOrDefaultAsync();
 
         if (dockerConfig == null)
         {
@@ -541,6 +540,7 @@ public class DockerCommandService : IDockerCommandService
     public async Task<DockerCommandResponse<string>> RemoveRemoteRunningContainers(int deployId)
     {
         var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+            .Include(x=>x.NasSettings)
             .Where(x => x.Id == deployId).FirstOrDefaultAsync();
 
         if (dockerConfig == null)
@@ -575,7 +575,6 @@ public class DockerCommandService : IDockerCommandService
 
         if (runningContainerToDelete == null)
         {
-            runningContainer = null;
             _logger.LogWarning("No Active Container to remove");
             return new DockerCommandResponse<string>("No Active Container to remove", "GetRemoteRunningContainers",
                 true);
@@ -591,13 +590,11 @@ public class DockerCommandService : IDockerCommandService
 
             if (!containerRemoveResponse.IsSuccess)
             {
-                runningContainer = null;
                 _logger.LogError($"Error removing container: {containerRemoveResponse.Data}");
                 return new DockerCommandResponse<string>(containerRemoveResponse.Data, $"Error removing container",
                     false);
             }
 
-            runningContainer = null;
             _logger.LogInformation(
                 $"Container removed: {runningContainerToDelete.Id} - {runningContainerToDelete.Names}");
             return new DockerCommandResponse<string>(containerRemoveResponse.Data,
@@ -611,7 +608,9 @@ public class DockerCommandService : IDockerCommandService
 
     public async Task<DockerCommandResponse<string>> RemoveRemoteImagesList(int deployId)
     {
-        var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
+        var dockerConfig = await _context.DockerConfig
+            .Include(x => x.DockerRepositorySettings)
+            .Include(x=>x.NasSettings)
             .Where(x => x.Id == deployId).FirstOrDefaultAsync();
 
         if (dockerConfig == null)
@@ -654,23 +653,22 @@ public class DockerCommandService : IDockerCommandService
                 logtoreturn +=
                     ($"Removing image {imageModel.Id} - {imageModel.Repository} - {imageModel.Tag} {Environment.NewLine}");
 
-                //var response = ssh.RunCommand($@"{variables.DockerCommand} rmi {imageModel.Id} --force");
-                if (dockerConfig.NasSettings != null)
-                {
-                    var removeImageResponse =
-                        await SendSSHCommand(deployId,
-                            $@"{dockerConfig.NasSettings.DockerCommandPath} rmi {imageModel.Id} --force");
 
-                    if (!removeImageResponse.IsSuccess)
-                    {
-                        logtoreturn +=
-                            ($"Error removing image {imageModel.Id}: {removeImageResponse.Data} {Environment.NewLine}");
-                    }
-                    else
-                    {
-                        logtoreturn +=
-                            ($"Image removed: {imageModel.Id} - {imageModel.Repository} {Environment.NewLine}");
-                    }
+                if (dockerConfig.NasSettings == null) continue;
+                
+                var removeImageResponse =
+                    await SendSSHCommand(deployId,
+                        $@"{dockerConfig.NasSettings.DockerCommandPath} rmi {imageModel.Id} --force");
+
+                if (!removeImageResponse.IsSuccess)
+                {
+                    logtoreturn +=
+                        ($"Error removing image {imageModel.Id}: {removeImageResponse.Data} {Environment.NewLine}");
+                }
+                else
+                {
+                    logtoreturn +=
+                        ($"Image removed: {imageModel.Id} - {imageModel.Repository} {Environment.NewLine}");
                 }
             }
 

@@ -41,16 +41,6 @@ public class DDService : IDDService
     /// <returns>A string indicating the result of the operation.</returns>
     public async Task<string> GetLinks(string link)
     {
-        // var _setting = new NasSettings()
-        // {
-        //     CreatedDate = DateTime.Now,
-        //     IsActive = true,
-        //     LastUpdatedDate = DateTime.Now,
-        //     Id = 1, UserName = "chim", Password = "aneurysm"
-        // };
-        //
-        // _setting = await AddSetting(_setting);
-
         var pageContent = await LoginDD(link);
 
         if (!string.IsNullOrEmpty(pageContent))

@@ -22,7 +22,8 @@ public class DeployDetailService : IDeployDetailService
     /// <param name="context">The database context.</param>
     /// <param name="logger">The logger for logging information and errors.</param>
     /// <param name="utilityServices">The utility services for encryption and other utilities.</param>
-    public DeployDetailService(ApplicationContext context, ILogger<DeployDetailService> logger, IUtilityServices utilityServices)
+    public DeployDetailService(ApplicationContext context, ILogger<DeployDetailService> logger,
+        IUtilityServices utilityServices)
     {
         _context = context;
         _logger = logger;
@@ -38,13 +39,16 @@ public class DeployDetailService : IDeployDetailService
     {
         try
         {
-            var deployDetail = await _context.DeployDetails.Include(x => x.DockerConfig).Where(x => x.Id == id).FirstOrDefaultAsync();
-            if (deployDetail == null)
-            {
-                _logger.LogWarning($"Deploy detail with ID {id} not found.");
-                return null;
-            }
-            return Mapper.FromDeployDetailToDto(deployDetail);
+            var deployDetail = await _context.DeployDetails
+                .Include(x => x.DockerConfig)
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync();
+            
+            if (deployDetail != null) return Mapper.FromDeployDetailToDto(deployDetail);
+            
+            _logger.LogWarning($"Deploy detail with ID {id} not found.");
+            return null!;
+
         }
         catch (Exception ex)
         {
@@ -56,17 +60,18 @@ public class DeployDetailService : IDeployDetailService
     /// <summary>
     /// Retrieves a list of deployment details for a specific Docker configuration.
     /// </summary>
-    /// <param name="DockerConfigId">The unique identifier of the Docker configuration.</param>
+    /// <param name="dockerConfigId">The unique identifier of the Docker configuration.</param>
     /// <returns>A list of deployment details as <see cref="DeployDetailDto"/> objects.</returns>
-    public async Task<List<DeployDetailDto>> GetDeployDetails(int DockerConfigId)
+    public async Task<List<DeployDetailDto>> GetDeployDetails(int dockerConfigId)
     {
         try
         {
-            var deployDetails = await _context.DeployDetails.Include(x => x.DockerConfig)
-                .Where(x => x.IsActive && x.DockerConfig.Id == DockerConfigId)
+            var deployDetails = await _context.DeployDetails
+                .Include(x => x.DockerConfig)
+                .Where(x => x.IsActive && x.DockerConfig!.Id == dockerConfigId)
                 .ToListAsync();
 
-            return deployDetails.Select(_deployDetail => Mapper.FromDeployDetailToDto(_deployDetail)).ToList();
+            return deployDetails.Select(Mapper.FromDeployDetailToDto).ToList();
         }
         catch (Exception ex)
         {
@@ -84,21 +89,27 @@ public class DeployDetailService : IDeployDetailService
     {
         try
         {
-            var dockerConfig = await _context.DockerConfig.FindAsync(deployDetailDto.DockerConfigId);
-
-            var deployDetail = new DeployDetail()
-            {
-                Note = deployDetailDto.Note,
-                DeployEnd = deployDetailDto.DeployEnd,
-                DeployStart = deployDetailDto.DeployStart,
-                Duration = deployDetailDto.Duration,
-                DockerConfig = dockerConfig,
-                IsActive = true,
-                CreatedDate = DateTime.Now,
-                LastUpdatedDate = DateTime.Now,
-                LogFilePath = deployDetailDto.LogFilePath,
-                Result = deployDetailDto.Result,
-            };
+            
+            var deployDetail = Mapper.FromDeployDetailDtoToModel(deployDetailDto);
+            
+            deployDetail.CreatedDate = DateTime.Now;
+            deployDetail.LastUpdatedDate = DateTime.Now;
+            deployDetail.IsActive = true;
+            deployDetail.DockerConfig = await _context.DockerConfig.FindAsync(deployDetailDto.DockerConfigId);;
+            
+            // var deployDetail = new DeployDetail()
+            // {
+            //     Note = deployDetailDto.Note,
+            //     DeployEnd = deployDetailDto.DeployEnd,
+            //     DeployStart = deployDetailDto.DeployStart,
+            //     Duration = deployDetailDto.Duration,
+            //     DockerConfig = dockerConfig,
+            //     IsActive = true,
+            //     CreatedDate = DateTime.Now,
+            //     LastUpdatedDate = DateTime.Now,
+            //     LogFilePath = deployDetailDto.LogFilePath,
+            //     Result = deployDetailDto.Result,
+            // };
 
             await _context.DeployDetails.AddAsync(deployDetail);
             await _context.SaveChangesAsync();
@@ -143,7 +154,7 @@ public class DeployDetailService : IDeployDetailService
             await _context.SaveChangesAsync();
 
             _logger.LogInformation($"Deploy detail with ID {existingDeployDetail.Id} updated.");
-            return deployDetailDto;
+            return Mapper.FromDeployDetailToDto(existingDeployDetail);
         }
         catch (Exception ex)
         {

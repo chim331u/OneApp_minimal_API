@@ -190,6 +190,19 @@ public static class Mapper
         };
     }
 
+    public static DeployDetail FromDeployDetailDtoToModel(DeployDetailDto deployDetailDto)
+    {
+        return new DeployDetail()
+        {
+            Id = deployDetailDto.Id,
+            DeployEnd = deployDetailDto.DeployEnd,
+            DeployStart = deployDetailDto.DeployStart,
+            Duration = deployDetailDto.Duration
+
+        };
+    }
+    
+    
     public static Settings FromSettingDtoToSettingsModel(SettingsDto settingsDto)
     {
         return new Settings()
