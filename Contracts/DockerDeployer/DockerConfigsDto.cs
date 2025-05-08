@@ -1,3 +1,5 @@
+using OneApp_minimalApi.Contracts.Enum;
+
 namespace OneApp_minimalApi.Contracts.DockerDeployer;
 
 /// <summary>
@@ -145,7 +147,7 @@ public class DockerConfigsDto
 
     public string? NasAddress { get; set; } //https://hub.docker.com/
 
-    public string? NasType { get; set; } //DD, Nas, DockerRegistry
+    public SettingType? NasType { get; set; } //DD, Nas, DockerRegistry
     public string? NasDockerCommandPath { get; set; } //share/.../docker
     public string? NasDockerFilePath { get; set; } // /root/Dockerfile
     public string? NasUser { get; set; }
@@ -156,7 +158,7 @@ public class DockerConfigsDto
 
     public string? RegistryAddress { get; set; } //https://hub.docker.com/
 
-    public string? RegistryType { get; set; } //DockerRegistry
+    public SettingType? RegistryType { get; set; } //DockerRegistry
 
     public string? RegistryUser { get; set; }
     

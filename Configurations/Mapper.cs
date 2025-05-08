@@ -1,5 +1,6 @@
 using OneApp_minimalApi.Contracts.Configs;
 using OneApp_minimalApi.Contracts.DockerDeployer;
+using OneApp_minimalApi.Contracts.Enum;
 using OneApp_minimalApi.Contracts.FilesDetail;
 using OneApp_minimalApi.Models;
 
@@ -37,7 +38,7 @@ public static class Mapper
         var _nasAlias = string.Empty;
         var _nasDockerCommandPath = string.Empty;
         var _nasDockerFilePath = string.Empty;
-        var _nasType = string.Empty;
+        SettingType? _nasType = null;
         var _nasUser = string.Empty;
         var _nasPassword = string.Empty;
         var _nasSettingId = 0;
@@ -45,7 +46,7 @@ public static class Mapper
         if (dockerConfig.NasSettings != null)
         {
             _nasAddress = dockerConfig.NasSettings?.Address;
-            _nasAlias = dockerConfig.NasSettings?.Address;
+            _nasAlias = dockerConfig.NasSettings?.Alias;
             _nasDockerCommandPath = dockerConfig.NasSettings?.DockerCommandPath;
             _nasDockerFilePath = dockerConfig.NasSettings?.DockerFilePath;
             _nasType = dockerConfig.NasSettings?.Type;
@@ -56,7 +57,7 @@ public static class Mapper
 
         var _registryAlias = string.Empty;
         var _registryAddress = string.Empty;
-        var _registryType = string.Empty;
+        SettingType? _registryType = null;
         var _registryUser = string.Empty;
         var _registryPassword = string.Empty;
         var _registrySettingId = 0;
