@@ -7,8 +7,7 @@ public static class SettingsEndpoint
 {
     public static IEndpointRouteBuilder MapSettingsEndPoint(this IEndpointRouteBuilder app)
     {
-    
-                /// <summary>
+        /// <summary>
         /// Endpoint to get a list of Setting.
         /// </summary>
         app.MapGet("/GetSettingList", async (ISettingsService settingsService) =>
@@ -16,7 +15,15 @@ public static class SettingsEndpoint
             var result = await settingsService.GetSettingsList();
             return Results.Ok(result);
         });
-        
+
+        /// <summary>
+        /// Endpoint to get the full list of Setting.
+        /// </summary>
+        app.MapGet("/GetSettingFullList", async (ISettingsService settingsService) =>
+        {
+            var result = await settingsService.GetSettingsFullList();
+            return Results.Ok(result);
+        });
         /// <summary>
         /// Endpoint to get a Setting by its ID.
         /// </summary>
@@ -26,7 +33,7 @@ public static class SettingsEndpoint
             var result = await settingsService.GetSetting(id);
             return result != null ? Results.Ok(result) : Results.NotFound();
         });
-        
+
         /// <summary>
         /// Endpoint to add a new Setting.
         /// </summary>
@@ -34,20 +41,21 @@ public static class SettingsEndpoint
         app.MapPost("/AddSetting", async (SettingsDto settingDto, ISettingsService settingsService) =>
         {
             var result = await settingsService.AddSetting(settingDto);
-            return Results.Created($"/GetSetting/{result.Data.Id}", result); 
+            return Results.Created($"/GetSetting/{result.Data.Id}", result);
         });
-        
+
         /// <summary>
         /// Endpoint to update an existing Setting.
         /// </summary>
         /// <param name="id">The unique identifier of the Setting to update.</param>
         /// <param name="configsDto">The updated Setting data.</param>
-        app.MapPut("/UpdateSetting/{id:int}", async (int id, SettingsDto settingDto, ISettingsService settingsService) =>
-        {
-            var result = await settingsService.UpdateSetting(id, settingDto);
-            return result != null ? Results.Ok(result) : Results.NotFound();
-        });
-        
+        app.MapPut("/UpdateSetting/{id:int}",
+            async (int id, SettingsDto settingDto, ISettingsService settingsService) =>
+            {
+                var result = await settingsService.UpdateSetting(id, settingDto);
+                return result != null ? Results.Ok(result) : Results.NotFound();
+            });
+
         /// <summary>
         /// Endpoint to delete a Setting by its ID.
         /// </summary>
@@ -59,5 +67,5 @@ public static class SettingsEndpoint
         });
 
         return app;
-        }
-        }
+    }
+}

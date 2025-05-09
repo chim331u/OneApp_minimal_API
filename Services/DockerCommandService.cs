@@ -181,7 +181,6 @@ public class DockerCommandService : IDockerCommandService
         return new DockerCommandResponse<string>(dockingTagImage, "GetPushImageCommand", true);
     }
 
-    //TODO: tag the image
     public async Task<DockerCommandResponse<string>> GetRunContainerCommand(int deployId)
     {
         var dockerConfig = await _context.DockerConfig.FindAsync(deployId);

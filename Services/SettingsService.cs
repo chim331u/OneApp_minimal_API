@@ -30,7 +30,23 @@ public class SettingsService : ISettingsService
     }
 
 
-    public async Task<ApiResponse<IEnumerable<SettingsDto>>> GetSettingsList()
+    public async Task<IEnumerable<SettingListDto>> GetSettingsList()
+    {
+        try
+        {
+            var settingList = await _context.DDSettings.Where(x => x.IsActive).ToListAsync();
+
+            var setDto = settingList.Select(Mapper.FromSettingModelToSettingListDto);
+
+            return setDto;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error retrieving setting List: {ex.Message}");
+            return null!;
+        }
+    }
+    public async Task<ApiResponse<IEnumerable<SettingsDto>>> GetSettingsFullList()
     {
         try
         {
@@ -38,12 +54,12 @@ public class SettingsService : ISettingsService
 
             var setDto = settingList.Select(Mapper.FromSettingsToDto);
 
-            return new ApiResponse<IEnumerable<SettingsDto>>(setDto, "Active setting list");
+            return new ApiResponse<IEnumerable<SettingsDto>>(setDto, "Active full setting list");
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error retrieving setting List: {ex.Message}");
-            return new ApiResponse<IEnumerable<SettingsDto>>(null!, $"Error retrieving setting List: {ex.Message}");
+            return new ApiResponse<IEnumerable<SettingsDto>>(null!, $"Error retrieving full setting List: {ex.Message}");
         }
     }
 

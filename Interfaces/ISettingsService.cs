@@ -5,7 +5,8 @@ namespace OneApp_minimalApi.Interfaces;
 
 public interface ISettingsService
 {
-        Task<ApiResponse<IEnumerable<SettingsDto>>> GetSettingsList();
+        Task<IEnumerable<SettingListDto>> GetSettingsList();
+        Task<ApiResponse<IEnumerable<SettingsDto>>> GetSettingsFullList();
         Task<ApiResponse<SettingsDto>> GetSetting(int settingId);
         Task<ApiResponse<SettingsDto>> AddSetting(SettingsDto settings);
         Task<ApiResponse<SettingsDto>> UpdateSetting(int originalId, SettingsDto settings);

@@ -229,4 +229,13 @@ public static class Mapper
             Password = settings.Password, User = settings.UserName
         };
     }
+
+
+    public static SettingListDto FromSettingModelToSettingListDto(Settings settings)
+    {
+        return new SettingListDto()
+        {
+            Id = settings.Id, Alias = settings.Alias, Type = settings.Type
+        };
+    }
 }
