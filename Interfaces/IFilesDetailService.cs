@@ -1,7 +1,7 @@
-using fc_minimalApi.Contracts.FilesDetail;
-using fc_minimalApi.Models;
+using OneApp_minimalApi.Contracts.FilesDetail;
+using OneApp_minimalApi.Models;
 
-namespace fc_minimalApi.Interfaces;
+namespace OneApp_minimalApi.Interfaces;
 
 public interface IFilesDetailService
 {

@@ -1,8 +1,8 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using fc_minimalApi.Interfaces;
+using OneApp_minimalApi.Interfaces;
 
-namespace fc_minimalApi.Services
+namespace OneApp_minimalApi.Services
 {
     public class UtilityServices : IUtilityServices
     {

@@ -1,6 +1,7 @@
-using fc_minimalApi.Contracts.Configs;
+using OneApp_minimalApi.Contracts;
+using OneApp_minimalApi.Contracts.Configs;
 
-namespace fc_minimalApi.Interfaces;
+namespace OneApp_minimalApi.Interfaces;
 
 public interface IConfigsService
 {
@@ -10,4 +11,7 @@ public interface IConfigsService
     Task<ConfigsDto> UpdateConfig(int id, ConfigsDto config);
     Task<ConfigsDto> AddConfig(ConfigsDto config);
     Task<bool> DeleteConfig(int id);
+    
+
+
 }

@@ -1,9 +1,11 @@
 using System.Reflection;
-using fc_minimalApi.Endpoints;
-using fc_minimalApi.Extensions;
-using fc_minimalApi.Services;
+using OneApp_minimalApi.Endpoints;
+using OneApp_minimalApi.Extensions;
+using OneApp_minimalApi.Services;
 using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using OneApp_minimalApi.AppContext;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +30,7 @@ builder.Services.AddHangfireServer(options => options.SchedulePollingInterval = 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1",
-        new OpenApiInfo { Title = "Minimal API", Version = "v1", Description = "File categorization API" });
+        new OpenApiInfo { Title = "Minimal API", Version = "v1", Description = "One App minimal API" });
 
     // Set the comments path for the Swagger JSON and UI.
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -57,6 +59,13 @@ builder.Logging.AddSerilog(logger);
 
 
 var app = builder.Build();
+
+//Appy migrations on app start
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    db.Database.Migrate();
+}
 
 app.UseCors("CorsPolicy");
 
@@ -89,5 +98,21 @@ app.MapGroup("/api/v1/")
 app.MapGroup("/api/v1/")
     .WithTags(" Utility endpoints")
     .MapUtilitiesEndPoint();
+
+app.MapGroup("/api/v1/")
+    .WithTags(" Docker Configurations endpoints")
+    .MapDockerConfigsEndPoint();
+
+app.MapGroup("/api/v1/")
+    .WithTags(" Deploy Detail endpoints")
+    .MapDeployDetailEndPoint();
+
+app.MapGroup("/api/v1/")
+    .WithTags(" Docker Command endpoints")
+    .MapDockerCommandEndPoint();
+
+app.MapGroup("/api/v1/")
+    .WithTags(" Settings endpoints")
+    .MapSettingsEndPoint();
 
 app.Run();

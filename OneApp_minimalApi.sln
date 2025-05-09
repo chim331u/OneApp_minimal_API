@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fc_minimalApi", "fc_minimalApi.csproj", "{4191E2CE-A5EB-4102-B329-DA7466EDF1EA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneApp_minimalApi", "OneApp_minimalApi.csproj", "{4191E2CE-A5EB-4102-B329-DA7466EDF1EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
