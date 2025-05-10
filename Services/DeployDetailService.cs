@@ -35,6 +35,39 @@ public class DeployDetailService : IDeployDetailService
     /// </summary>
     /// <param name="id">The unique identifier of the deployment detail.</param>
     /// <returns>The deployment detail as a <see cref="DeployDetailDto"/> object.</returns>
+    public async Task<DeployDetailDto> GetDeployDetailResult(int id)
+    {
+        try
+        {
+            var deployDetail = await _context.DeployDetails
+                .Include(x => x.DockerConfig)
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync();
+
+            if (deployDetail != null)
+            {
+                var result = Mapper.FromDeployDetailToDto(deployDetail);
+                if (deployDetail.LogFilePath != null)
+                    result.LogText = _utilityServices.GetLogFileText(deployDetail.LogFilePath);
+                return result;
+            }
+            
+            _logger.LogWarning($"Deploy detail with ID {id} not found.");
+            return null!;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error retrieving deploy detail with ID {id}: {ex.Message}");
+            return null!;
+        }
+    }
+
+    /// <summary>
+    /// Retrieves a deployment detail by its ID.
+    /// </summary>
+    /// <param name="id">The unique identifier of the deployment detail.</param>
+    /// <returns>The deployment detail as a <see cref="DeployDetailDto"/> object.</returns>
     public async Task<DeployDetailDto> GetDeployDetailById(int id)
     {
         try
@@ -56,7 +89,7 @@ public class DeployDetailService : IDeployDetailService
             return null!;
         }
     }
-
+    
     /// <summary>
     /// Retrieves a list of deployment details for a specific Docker configuration.
     /// </summary>
@@ -162,6 +195,41 @@ public class DeployDetailService : IDeployDetailService
             return null!;
         }
     }
+    
+    public async Task<DeployDetailDto> UpdateDeployDetailResult(int id, string deployResult)
+    {
+        try
+        {
+            var existingDeployDetail = await _context.DeployDetails.Include(x=>x.DockerConfig).Where(x=>x.Id==id).FirstOrDefaultAsync();
+
+            if (existingDeployDetail == null)
+            {
+                _logger.LogWarning($"Deploy detail with ID {id} not found.");
+                return null!;
+            }
+
+            existingDeployDetail.Result = deployResult switch
+            {
+                "1" => true,
+                "2" => false,
+                "Null" => null,
+                _ => null
+            };
+
+            existingDeployDetail.LastUpdatedDate = DateTime.Now;
+
+            _context.DeployDetails.Update(existingDeployDetail);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation($"Deploy detail with ID {existingDeployDetail.Id} updated.");
+            return Mapper.FromDeployDetailToDto(existingDeployDetail);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error updating deploy detail: {ex.Message}");
+            return null!;
+        }
+    }
 
     /// <summary>
     /// Deletes a deployment detail by marking it as inactive.
@@ -195,4 +263,6 @@ public class DeployDetailService : IDeployDetailService
             return false;
         }
     }
+    
+    
 }

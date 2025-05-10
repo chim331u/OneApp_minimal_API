@@ -178,13 +178,19 @@ public static class Mapper
     /// <returns>A <see cref="DeployDetailDto"/> DTO.</returns>
     public static DeployDetailDto FromDeployDetailToDto(DeployDetail deployDetail)
     {
+        var dockerConfigId = 0;
+        if (deployDetail.DockerConfig != null)
+        {
+            dockerConfigId = deployDetail.DockerConfig.Id;
+        }
+
         return new DeployDetailDto()
         {
             Id = deployDetail.Id,
             DeployEnd = deployDetail.DeployEnd,
             DeployStart = deployDetail.DeployStart,
             Duration = deployDetail.Duration,
-            DockerConfigId = deployDetail.DockerConfig.Id,
+            DockerConfigId = dockerConfigId,
             Note = deployDetail.Note,
             LogFilePath = deployDetail.LogFilePath,
             Result = deployDetail.Result,
@@ -199,11 +205,10 @@ public static class Mapper
             DeployEnd = deployDetailDto.DeployEnd,
             DeployStart = deployDetailDto.DeployStart,
             Duration = deployDetailDto.Duration
-
         };
     }
-    
-    
+
+
     public static Settings FromSettingDtoToSettingsModel(SettingsDto settingsDto)
     {
         return new Settings()

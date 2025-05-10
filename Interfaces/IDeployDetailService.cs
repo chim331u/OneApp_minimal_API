@@ -9,4 +9,6 @@ public interface IDeployDetailService
     Task<DeployDetailDto> AddDeployDetail(DeployDetailDto deployDetailDto);
     Task<DeployDetailDto> UpdateDeployDetail(int id, DeployDetailDto deployDetailDto);
     Task<bool> DeleteDeployDetail(int id);
+    Task<DeployDetailDto> GetDeployDetailResult(int id);
+    Task<DeployDetailDto> UpdateDeployDetailResult(int id, string deployResult);
 }

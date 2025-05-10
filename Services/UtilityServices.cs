@@ -171,5 +171,26 @@ namespace OneApp_minimalApi.Services
 
             return comparer.Compare(hashOfInput, hash) == 0;
         }
+
+        public string GetLogFileText(string logFilePath)
+        {
+
+            if (string.IsNullOrEmpty(logFilePath))
+            {
+                return null;
+            }
+
+            string logText = string.Empty;
+
+            using (var sr = new StreamReader(logFilePath))
+            {
+                // Read the stream as a string, and write the string to the console.
+
+                logText = sr.ReadToEnd();
+            }
+            return logText;
+        }
     }
+    
+    
 }
