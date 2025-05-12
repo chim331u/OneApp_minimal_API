@@ -125,7 +125,7 @@ namespace OneApp_minimalApi.Services
                 }
             }
 
-            var jobExecutionTime = _utility.TimeDiff(jobStartTime, DateTime.Now);
+            var jobExecutionTime =await _utility.TimeDiff(jobStartTime, DateTime.Now);
             _logger.LogInformation($"Job Completed: [{jobExecutionTime}]");
             await _notificationHub.Clients.All.SendAsync("jobNotifications",
                 $"Completed Job in [{jobExecutionTime}] - Moved {fileMoved} files", MoveFilesResults.Completed);
@@ -186,14 +186,14 @@ namespace OneApp_minimalApi.Services
                     var _categorizedFiles = _machineLearningService.PredictFileCategorization(filesToAddToDb);
 
                     _logger.LogInformation(
-                        $"End Prediction process: [{_utility.TimeDiff(_categorizationStartTime, DateTime.Now)}]");
+                        $"End Prediction process: [{await _utility.TimeDiff(_categorizationStartTime, DateTime.Now)}]");
 
                     //add to db
                     _logger.LogInformation("Start add process");
                     var _addStartTime = DateTime.Now;
                     fileAdded = await _serviceData.AddFileDetailList(_categorizedFiles);
 
-                    _logger.LogInformation($"End adding process: [{_utility.TimeDiff(_addStartTime, DateTime.Now)}]");
+                    _logger.LogInformation($"End adding process: [{await _utility.TimeDiff(_addStartTime, DateTime.Now)}]");
                 }
             }
 
@@ -204,9 +204,9 @@ namespace OneApp_minimalApi.Services
                     $"Error in refresh files :{ex.Message}", 0);
             }
 
-            _logger.LogInformation($"End RefreshFile process: [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+            _logger.LogInformation($"End RefreshFile process: [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]");
 
-            var jobExecutionTime = _utility.TimeDiff(jobStartTime, DateTime.Now);
+            var jobExecutionTime = await _utility.TimeDiff(jobStartTime, DateTime.Now);
             _logger.LogInformation($"Refresh Files Job Completed: [{jobExecutionTime}]");
             await _notificationHub.Clients.All.SendAsync("jobNotifications",
                 $"Refresh Files job Completed in [{jobExecutionTime}] - Added {fileAdded} files, total files in folder: {totalFilesInFolder}",
@@ -240,9 +240,9 @@ namespace OneApp_minimalApi.Services
             {
                 WriteLogWarning(dockerFileCreated.Data);
                 _logger.LogWarning(
-                    $"Job Completed with error {dockerFileCreated.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+                    $"Job Completed with error {dockerFileCreated.Data} in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]");
                 await _notificationHub.Clients.All.SendAsync("jobNotifications",
-                    $"Job Completed with error {dockerFileCreated.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]",
+                    $"Job Completed with error {dockerFileCreated.Data} in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]",
                     JobResult.Failed, cancellationToken: cancellationToken);
 
                 await Log.CloseAndFlushAsync();
@@ -262,9 +262,9 @@ namespace OneApp_minimalApi.Services
             {
                 WriteLogWarning(uploadDockerFile.Data);
                 _logger.LogWarning(
-                    $"Job Completed with error {uploadDockerFile.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+                    $"Job Completed with error {uploadDockerFile.Data} in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]");
                 await _notificationHub.Clients.All.SendAsync("jobNotifications",
-                    $"Job Completed with error {uploadDockerFile.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]",
+                    $"Job Completed with error {uploadDockerFile.Data} in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]",
                     JobResult.Failed, cancellationToken: cancellationToken);
 
                 await Log.CloseAndFlushAsync();
@@ -304,9 +304,9 @@ namespace OneApp_minimalApi.Services
             {
                 WriteLogWarning(buildImage.Data);
                 _logger.LogWarning(
-                    $"Job Completed with error {buildImage.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+                    $"Job Completed with error {buildImage.Data} in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]");
                 await _notificationHub.Clients.All.SendAsync("jobNotifications",
-                    $"Job Completed with error {buildImage.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]",
+                    $"Job Completed with error {buildImage.Data} in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]",
                     JobResult.Failed, cancellationToken: cancellationToken);
 
                 await Log.CloseAndFlushAsync();
@@ -325,9 +325,9 @@ namespace OneApp_minimalApi.Services
             {
                 WriteLogWarning(runContainer.Data);
                 _logger.LogWarning(
-                    $"Job Completed with error {runContainer.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+                    $"Job Completed with error {runContainer.Data} in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]");
                 await _notificationHub.Clients.All.SendAsync("jobNotifications",
-                    $"Job Completed with error {runContainer.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]",
+                    $"Job Completed with error {runContainer.Data} in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]",
                     JobResult.Failed, cancellationToken: cancellationToken);
 
                 await Log.CloseAndFlushAsync();
@@ -339,10 +339,10 @@ namespace OneApp_minimalApi.Services
 
 
             //close deploy
-            _logger.LogInformation($"Job Completed: [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
-            WriteLogInfo($"Job Completed: [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+            _logger.LogInformation($"Job Completed: [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+            WriteLogInfo($"Job Completed: [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]");
             await _notificationHub.Clients.All.SendAsync("jobNotifications",
-                $"Completed Job in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]", JobResult.Completed, cancellationToken: cancellationToken);
+                $"Completed Job in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]", JobResult.Completed, cancellationToken: cancellationToken);
 
             await Log.CloseAndFlushAsync();
         }
@@ -372,9 +372,9 @@ namespace OneApp_minimalApi.Services
             {
                 WriteLogWarning(buildImage.Data);
                 _logger.LogWarning(
-                    $"Job Completed with error {buildImage.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+                    $"Job Completed with error {buildImage.Data} in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]");
                 await _notificationHub.Clients.All.SendAsync("jobNotifications",
-                    $"Job Completed with error {buildImage.Data} in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]",
+                    $"Job Completed with error {buildImage.Data} in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]",
                     JobResult.Failed, cancellationToken: cancellationToken);
 
                 await Log.CloseAndFlushAsync();
@@ -385,10 +385,10 @@ namespace OneApp_minimalApi.Services
                 JobResult.InProgress, cancellationToken: cancellationToken);
 
             //close deploy
-            _logger.LogInformation($"Job Completed: [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
-            WriteLogInfo($"Job Completed: [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+            _logger.LogInformation($"Job Completed: [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]");
+            WriteLogInfo($"Job Completed: [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]");
             await _notificationHub.Clients.All.SendAsync("jobNotifications",
-                $"Completed Job in [{_utility.TimeDiff(jobStartTime, DateTime.Now)}]", JobResult.Completed, cancellationToken: cancellationToken);
+                $"Completed Job in [{await _utility.TimeDiff(jobStartTime, DateTime.Now)}]", JobResult.Completed, cancellationToken: cancellationToken);
 
             await Log.CloseAndFlushAsync();
         }

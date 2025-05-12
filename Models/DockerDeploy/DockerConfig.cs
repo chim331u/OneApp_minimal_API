@@ -25,9 +25,9 @@ namespace OneApp_minimalApi.Models
 
         [Required]
         public string DockerFileName { get; set; }
-
-        [Required]
-        public string Host { get; set; }
+        
+        // [Required]
+        // public string Host { get; set; }
 
         // [Required]
         // public string User { get; set; }

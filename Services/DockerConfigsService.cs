@@ -165,7 +165,7 @@ public class DockerConfigsService : IDockerConfigsService
             existingItem.FolderContainer3 = dockerConfigsDto.FolderContainer3;
             existingItem.FolderFrom1 = dockerConfigsDto.FolderFrom1;
             existingItem.FolderFrom2 = dockerConfigsDto.FolderFrom2;
-            existingItem.Host = dockerConfigsDto.Host;
+            // existingItem.Host = dockerConfigsDto.Host;
             existingItem.NasLocalFolderPath = dockerConfigsDto.NasLocalFolderPath;
             // existingItem.Password = dockerConfigsDto.Password;
             existingItem.FolderFrom3 = dockerConfigsDto.FolderFrom3;
