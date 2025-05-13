@@ -22,10 +22,10 @@ public class DockerConfigsDto
     /// </summary>
     public string? Description { get; set; }
 
-    /// <summary>
-    /// Gets or sets the Docker command used for the configuration.
-    /// </summary>
-    public string DockerCommand { get; set; }
+    // /// <summary>
+    // /// Gets or sets the Docker command used for the configuration.
+    // /// </summary>
+    // public string DockerCommand { get; set; }
 
     /// <summary>
     /// Gets or sets the solution repository URL.
@@ -47,20 +47,20 @@ public class DockerConfigsDto
     /// </summary>
     public string DockerFileName { get; set; }
 
-    /// <summary>
-    /// Gets or sets the host address for the Docker configuration.
-    /// </summary>
-    public string Host { get; set; }
-
-    /// <summary>
-    /// Gets or sets the username for authentication.
-    /// </summary>
-    public string User { get; set; }
-
-    /// <summary>
-    /// Gets or sets the password for authentication.
-    /// </summary>
-    public string Password { get; set; }
+    // /// <summary>
+    // /// Gets or sets the host address for the Docker configuration.
+    // /// </summary>
+    // public string Host { get; set; }
+    //
+    // /// <summary>
+    // /// Gets or sets the username for authentication.
+    // /// </summary>
+    // public string User { get; set; }
+    //
+    // /// <summary>
+    // /// Gets or sets the password for authentication.
+    // /// </summary>
+    // public string Password { get; set; }
 
     /// <summary>
     /// Gets or sets the port address for the Docker configuration.

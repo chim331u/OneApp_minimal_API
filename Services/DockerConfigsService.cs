@@ -92,7 +92,7 @@ public class DockerConfigsService : IDockerConfigsService
     {
         try
         {
-            dockerConfigs.Password = await _utilityServices.EncryptString(dockerConfigs.Password);
+            //dockerConfigs.Password = await _utilityServices.EncryptString(dockerConfigs.Password);
 
             if (string.IsNullOrEmpty(dockerConfigs.ImageVersion))
             {
