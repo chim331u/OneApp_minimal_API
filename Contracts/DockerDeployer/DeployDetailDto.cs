@@ -39,6 +39,8 @@ public class DeployDetailDto
     /// Gets or sets the identifier of the associated Docker configuration.
     /// </summary>
     public int DockerConfigId { get; set; }
+    
+    public string? LogText { get; set; }
 
     /// <summary>
     /// Gets or sets additional notes about the deployment.

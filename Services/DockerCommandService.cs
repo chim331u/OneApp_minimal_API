@@ -264,17 +264,30 @@ public class DockerCommandService : IDockerCommandService
                 command = command.Replace("docker", dockerConfig.NasSettings.DockerCommandPath);
             }
 
-            using var client = new SshClient(dockerConfig.Host, dockerConfig.NasSettings.UserName,
+            using var client = new SshClient(dockerConfig.NasSettings.Address, dockerConfig.NasSettings.UserName,
                 await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
             client.Connect();
 
             _logger.LogInformation($"SSH Command '{command}' is sent...");
 
             var cmd = client.RunCommand(command);
+
             if (!string.IsNullOrEmpty(cmd.Error))
             {
-                _logger.LogError($"SSH Error command '{command}' - {cmd.Error}");
-                return new DockerCommandResponse<string>(cmd.Error, command, false);
+                var error = string.Empty;
+                if (cmd.Error.Contains(
+                        "Error build images: DEPRECATED: The legacy builder is deprecated and will be removed in a future release.\r\n            Install the buildx component to build images with BuildKit:\r\n            https://docs.docker.com/go/buildx/"))
+                {
+                    error = cmd.Error.Replace(
+                        "Error build images: DEPRECATED: The legacy builder is deprecated and will be removed in a future release.\r\n            Install the buildx component to build images with BuildKit:\r\n            https://docs.docker.com/go/buildx/",
+                        string.Empty).Trim();
+                }
+
+                if (!string.IsNullOrEmpty(error))
+                {
+                    _logger.LogError($"SSH Error command '{command}' - {cmd.Error}");
+                    return new DockerCommandResponse<string>(cmd.Error, command, false);
+                }
             }
 
             _logger.LogInformation($"SSH Command result: {cmd.Result}");
@@ -460,7 +473,7 @@ public class DockerCommandService : IDockerCommandService
         {
             if (dockerConfig.NasSettings != null)
             {
-                using var client = new SftpClient(dockerConfig.Host, dockerConfig.NasSettings.UserName,
+                using var client = new SftpClient(dockerConfig.NasSettings.Address, dockerConfig.NasSettings.UserName,
                     await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
                 client.Connect();
                 _logger.LogInformation($"Client connected to NAS");
@@ -539,7 +552,7 @@ public class DockerCommandService : IDockerCommandService
     public async Task<DockerCommandResponse<string>> RemoveRemoteRunningContainers(int deployId)
     {
         var dockerConfig = await _context.DockerConfig.Include(x => x.DockerRepositorySettings)
-            .Include(x=>x.NasSettings)
+            .Include(x => x.NasSettings)
             .Where(x => x.Id == deployId).FirstOrDefaultAsync();
 
         if (dockerConfig == null)
@@ -585,7 +598,7 @@ public class DockerCommandService : IDockerCommandService
         if (dockerConfig.NasSettings != null)
         {
             var containerRemoveResponse = await SendSSHCommand(deployId,
-                $"{dockerConfig.NasSettings.DockerCommandPath} rm --force {runningContainerToDelete.Id}");
+                $"docker rm --force {runningContainerToDelete.Id}");
 
             if (!containerRemoveResponse.IsSuccess)
             {
@@ -609,7 +622,7 @@ public class DockerCommandService : IDockerCommandService
     {
         var dockerConfig = await _context.DockerConfig
             .Include(x => x.DockerRepositorySettings)
-            .Include(x=>x.NasSettings)
+            .Include(x => x.NasSettings)
             .Where(x => x.Id == deployId).FirstOrDefaultAsync();
 
         if (dockerConfig == null)
@@ -654,10 +667,10 @@ public class DockerCommandService : IDockerCommandService
 
 
                 if (dockerConfig.NasSettings == null) continue;
-                
+
                 var removeImageResponse =
                     await SendSSHCommand(deployId,
-                        $@"{dockerConfig.NasSettings.DockerCommandPath} rmi {imageModel.Id} --force");
+                        $@"docker rmi {imageModel.Id} --force");
 
                 if (!removeImageResponse.IsSuccess)
                 {
@@ -696,7 +709,7 @@ public class DockerCommandService : IDockerCommandService
         if (!buildCommand.IsSuccess)
         {
             _logger.LogWarning($"Unable to retrive build command");
-            return new DockerCommandResponse<string>("Unable to retrive build command",
+            return new DockerCommandResponse<string>("Unable to retrieve build command",
                 "BuildCommand", false);
         }
 

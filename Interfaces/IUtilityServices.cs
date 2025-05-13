@@ -41,5 +41,7 @@
         /// <param name="hash">The hash to compare against.</param>
         /// <returns>A boolean indicating whether the hash matches the input.</returns>
         Task<bool> VerifyHash_SHA256(string input, string hash);
+
+        string GetLogFileText(string logFilePath);
     }
 }

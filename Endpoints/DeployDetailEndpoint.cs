@@ -22,9 +22,9 @@ public static class DeployDetailEndpoint
         /// </summary>
         /// <param name="id">The Docker configuration ID.</param>
         /// <param name="_deopDeployDetailService">The service to retrieve deploy details.</param>
-        app.MapGet("/GetDeployDetailList/{id:int}", async (int id, IDeployDetailService _deopDeployDetailService) =>
+        app.MapGet("/GetDeployDetailList/{id:int}", async (int id, IDeployDetailService deployDetailService) =>
         {
-            var result = await _deopDeployDetailService.GetDeployDetails(id);
+            var result = await deployDetailService.GetDeployDetails(id);
             return Results.Ok(result);
         });
 
@@ -33,9 +33,15 @@ public static class DeployDetailEndpoint
         /// </summary>
         /// <param name="id">The unique identifier of the deploy detail.</param>
         /// <param name="_deopDeployDetailService">The service to retrieve the deploy detail.</param>
-        app.MapGet("/GetDeployDetail/{id:int}", async (int id, IDeployDetailService _deopDeployDetailService) =>
+        app.MapGet("/GetDeployDetail/{id:int}", async (int id, IDeployDetailService deployDetailService) =>
         {
-            var result = await _deopDeployDetailService.GetDeployDetailById(id);
+            var result = await deployDetailService.GetDeployDetailById(id);
+            return result != null ? Results.Ok(result) : Results.NotFound();
+        }); 
+        
+        app.MapGet("/GetDeployDetailResult/{id:int}", async (int id, IDeployDetailService deployDetailService) =>
+        {
+            var result = await deployDetailService.GetDeployDetailResult(id);
             return result != null ? Results.Ok(result) : Results.NotFound();
         });
 
@@ -44,9 +50,9 @@ public static class DeployDetailEndpoint
         /// </summary>
         /// <param name="deployDetailDto">The deploy detail data to add.</param>
         /// <param name="_deopDeployDetailService">The service to process the request.</param>
-        app.MapPost("/AddDeployDetail", async (DeployDetailDto deployDetailDto, IDeployDetailService _deopDeployDetailService) =>
+        app.MapPost("/AddDeployDetail", async (DeployDetailDto deployDetailDto, IDeployDetailService deployDetailService) =>
         {
-            var result = await _deopDeployDetailService.AddDeployDetail(deployDetailDto);
+            var result = await deployDetailService.AddDeployDetail(deployDetailDto);
             return Results.Created($"/GetDeployDetail/{result!.Id}", result);
         });
 
@@ -56,10 +62,16 @@ public static class DeployDetailEndpoint
         /// <param name="id">The unique identifier of the deploy detail to update.</param>
         /// <param name="deployDetailDto">The updated deploy detail data.</param>
         /// <param name="_deopDeployDetailService">The service to process the request.</param>
-        app.MapPut("/UpdateDeployDetail/{id:int}", async (int id, DeployDetailDto deployDetailDto, IDeployDetailService _deopDeployDetailService) =>
+        app.MapPut("/UpdateDeployDetail/{id:int}", async (int id, DeployDetailDto deployDetailDto, IDeployDetailService _deployDetailService) =>
         {
-            var result = await _deopDeployDetailService.UpdateDeployDetail(id, deployDetailDto);
+            var result = await _deployDetailService.UpdateDeployDetail(id, deployDetailDto);
             return result != null ? Results.Ok(result) : Results.NotFound();
+        });
+        
+        app.MapGet("/UpdateDeployDetailResult/{id:int}/{result}", async (int id, string result, IDeployDetailService _deployDetailService) =>
+        {
+            var resultUpdate = await _deployDetailService.UpdateDeployDetailResult(id, result);
+            return resultUpdate != null ? Results.Ok(resultUpdate) : Results.NotFound();
         });
 
         /// <summary>
@@ -67,9 +79,9 @@ public static class DeployDetailEndpoint
         /// </summary>
         /// <param name="id">The unique identifier of the deploy detail to delete.</param>
         /// <param name="_deopDeployDetailService">The service to process the request.</param>
-        app.MapDelete("/DeleteDeployDetail/{id:int}", async (int id, IDeployDetailService _deopDeployDetailService) =>
+        app.MapDelete("/DeleteDeployDetail/{id:int}", async (int id, IDeployDetailService _deployDetailService) =>
         {
-            var result = await _deopDeployDetailService.DeleteDeployDetail(id);
+            var result = await _deployDetailService.DeleteDeployDetail(id);
             return result ? Results.NoContent() : Results.NotFound();
         });
 
