@@ -51,6 +51,12 @@ public static class DockerCommandEnpoint
             var commandResult = await _dockerCommandService.CreateDockerFile(id);
             return Results.Ok(commandResult);
         });
+        
+        app.MapGet("/UploadDockerFile/{id:int}", async (int id, IDockerCommandService _dockerCommandService) =>
+        {
+            var commandResult = await _dockerCommandService.UploadDockerFile(id);
+            return Results.Ok(commandResult);
+        });
 
         app.MapGet("/GetRunningContainersCommand/", async (IDockerCommandService _dockerCommandService) =>
         {

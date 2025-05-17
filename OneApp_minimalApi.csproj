@@ -12,6 +12,10 @@
       <NoWarn>1701;1702;1591;1587;1572;1573</NoWarn>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <NoWarn>1701;1702;1591;1587;1572;1573</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
         <PackageReference Include="Hangfire.AspNetCore" Version="1.8.18" />
