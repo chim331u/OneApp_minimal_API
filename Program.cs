@@ -127,5 +127,9 @@ app.MapGroup("/api/v1/")
     .WithTags(" Settings endpoints")
     .MapSettingsEndPoint();
 
+app.MapGroup("/api/v1/")
+    .WithTags(" Identity endpoints")
+    .MapIdentityEndPoint();
+
 await DbSeeder.SeedData(app); 
 app.Run();
