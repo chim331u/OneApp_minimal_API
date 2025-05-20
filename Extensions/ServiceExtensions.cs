@@ -1,10 +1,15 @@
 using System.Reflection;
+using System.Text;
 using OneApp_minimalApi.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OneApp_minimalApi.AppContext;
 using OneApp_minimalApi.Exceptions;
 using OneApp_minimalApi.Interfaces;
+using OneApp_minimalApi.Models.Identity;
 using OneApp_minimalApi.Services;
 
 namespace OneApp_minimalApi.Extensions
@@ -32,6 +37,36 @@ namespace OneApp_minimalApi.Extensions
 
             // Adding validators from the current assembly
             builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+            // For Identity
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationContext>()
+                .AddDefaultTokenProviders();
+
+            builder.Services.AddAuthentication(options =>
+                    {
+                        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                    }
+                )
+                .AddJwtBearer(options =>
+                    {
+                        options.SaveToken = true;
+                        options.RequireHttpsMetadata = false;
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidAudience = builder.Configuration["JWT:ValidAudience"],
+                            ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+                            ClockSkew = TimeSpan.Zero,
+                            IssuerSigningKey =
+                                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secret"]))
+                        };
+                    }
+                );
+
 
             // Register services
             builder.Services.AddScoped<IFilesDetailService, FilesDetailService>();

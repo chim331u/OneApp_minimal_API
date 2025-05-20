@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OneApp_minimalApi.Models;
+using OneApp_minimalApi.Models.Identity;
+
 // ReSharper disable All
 
 namespace OneApp_minimalApi.AppContext
@@ -7,7 +10,7 @@ namespace OneApp_minimalApi.AppContext
     /// <summary>
     /// Represents the database context for the application.
     /// </summary>
-    public class ApplicationContext(DbContextOptions<ApplicationContext> options) : DbContext(options)
+    public class ApplicationContext(DbContextOptions<ApplicationContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
         // // Default schema for the database context
         // private const string DefaultSchema = "fc_minimalApi";
@@ -46,6 +49,8 @@ namespace OneApp_minimalApi.AppContext
         /// Gets or sets the DbSet representing the collection of deployment details in the database.
         /// </summary>
         public DbSet<DeployDetail> DeployDetails { get; set; }
+        
+        public  DbSet<TokenInfo> TokenInfo { get; set; }
         
         /// <summary>
         /// Configures the model and relationships for the database context.

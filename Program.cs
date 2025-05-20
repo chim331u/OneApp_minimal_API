@@ -1,11 +1,17 @@
 using System.Reflection;
+using System.Text;
 using OneApp_minimalApi.Endpoints;
 using OneApp_minimalApi.Extensions;
 using OneApp_minimalApi.Services;
 using Hangfire;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OneApp_minimalApi.AppContext;
+using OneApp_minimalApi.Contracts.Identity;
+using OneApp_minimalApi.Models.Identity;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -67,6 +73,11 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+// // For Identity
+// builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+//     .AddEntityFrameworkStores<ApplicationContext>()
+//     .AddDefaultTokenProviders();
+
 app.UseCors("CorsPolicy");
 
 // Configure the HTTP request pipeline.
@@ -76,6 +87,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseAuthorization();
 app.UseHttpsRedirection();
 app.MapHub<NotificationHub>("notifications");
 
@@ -115,4 +127,5 @@ app.MapGroup("/api/v1/")
     .WithTags(" Settings endpoints")
     .MapSettingsEndPoint();
 
+await DbSeeder.SeedData(app); 
 app.Run();

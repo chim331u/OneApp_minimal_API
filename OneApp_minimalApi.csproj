@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -6,7 +6,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    </PropertyGroup>
+      <UserSecretsId>cc34baca-a81a-4b84-909b-165c58ca71a0</UserSecretsId>
+  </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <NoWarn>1701;1702;1591;1587;1572;1573</NoWarn>
@@ -21,6 +22,8 @@
         <PackageReference Include="Hangfire.AspNetCore" Version="1.8.18" />
         <PackageReference Include="Hangfire.InMemory" Version="1.0.0" />
         <PackageReference Include="HtmlAgilityPack" Version="1.12.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.15" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.15" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.11" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.15" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.15">
