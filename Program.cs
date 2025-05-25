@@ -1,17 +1,12 @@
 using System.Reflection;
-using System.Text;
 using OneApp_minimalApi.Endpoints;
 using OneApp_minimalApi.Extensions;
 using OneApp_minimalApi.Services;
 using Hangfire;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OneApp_minimalApi.AppContext;
 using OneApp_minimalApi.Contracts.Identity;
-using OneApp_minimalApi.Models.Identity;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -31,6 +31,8 @@ namespace OneApp_minimalApi.Services
             byte[] array;
 
             string key = "CryptoKey";
+            //Environment.GetEnvironmentVariable("JWT:Secret")
+            // key = Environment.GetEnvironmentVariable("ENCRYPT_KEY");
 
             using (Aes aes = Aes.Create())
             {

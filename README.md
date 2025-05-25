@@ -13,3 +13,6 @@ docker run --restart always --name oneapp_api -d -p 30119:8080 -v /Users/luca/Gi
 
 Prod
 docker run --restart always --name fc_minimal_api -d -p 30109:8080 -v /share/CACHEDEV2_DATA/Storage/Docker/file_categorization:/data -v /share/Download/Incoming:/incoming -v /share/Video/Serie:/serie fc_minimal_api_image:1.0
+ Environment Variables:
+
+-e "SECRET_VAR=mysecret" \

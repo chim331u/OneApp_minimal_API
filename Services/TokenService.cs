@@ -23,6 +23,10 @@ public class TokenService : ITokenService
         var authSigningKey = new SymmetricSecurityKey
             (Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
 
+        //TODO only for production
+        var variblesFromDocket = new SymmetricSecurityKey
+            (Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT:Secret")));
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Issuer = _configuration["JWT:ValidIssuer"],
