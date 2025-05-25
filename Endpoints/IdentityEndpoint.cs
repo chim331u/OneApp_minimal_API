@@ -12,11 +12,6 @@ public static class IdentityEndpoint
         app.MapPost("/Signup", async (SignupModelDto model, IIdentityService identityService) =>
         {
             var signupResult = await identityService.Signup(model);
-            
-            if (signupResult == null)
-            {
-                return Results.BadRequest("Failed to create user");
-            }
 
             switch (signupResult.Message)
             {
@@ -32,17 +27,12 @@ public static class IdentityEndpoint
         app.MapPost("/Login", async (LoginModelDto model, IIdentityService identityService) =>
         {
             var loginResult = await identityService.Login(model);
-            
-            if (loginResult == null)
-            {
-                return Results.BadRequest("Failed to login user");
-            }
 
             switch (loginResult.Message)
             {
                 case "BadRequest":
                     return Results.BadRequest(loginResult.Data);
-                case "Unothorized":
+                case "Unauthorized":
                     return Results.Unauthorized();
                 case "Ok":
                     return Results.Ok(JsonSerializer.Deserialize<TokenModelDto>(loginResult.Data));
