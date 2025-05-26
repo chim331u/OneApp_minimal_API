@@ -25,8 +25,8 @@ public class DbSeeder
             var user = new ApplicationUser
             {
                 Name = "Admin",
-                UserName = "admin@gmail.com",
-                Email = "admin@gmail.com",
+                UserName = "admin@admin.com",
+                Email = "admin@admin.com",
                 EmailConfirmed = true,
                 SecurityStamp = Guid.NewGuid().ToString()
             };
