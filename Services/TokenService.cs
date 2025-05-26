@@ -20,19 +20,27 @@ public class TokenService : ITokenService
         var tokenHandler = new JwtSecurityTokenHandler();
 
         // Create a symmetric security key using the secret key from the configuration.
-        var authSigningKey = new SymmetricSecurityKey
-            (Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+        SymmetricSecurityKey authSigningKey;
 
-        // //TODO only for production
-        // var variblesFromDocket = new SymmetricSecurityKey
-        //     (Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT:Secret")));
-
+        if (_configuration.GetSection("IsDev").Value != null)
+        {
+            //for debug only
+            authSigningKey = new SymmetricSecurityKey
+                (Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+            
+        }
+        else
+        {
+            authSigningKey = new SymmetricSecurityKey
+                (Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT:Secret")));
+        }
+        
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Issuer = _configuration["JWT:ValidIssuer"],
             Audience = _configuration["JWT:ValidAudience"],
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddMinutes(15),
+            Expires = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration.GetSection("TokenExpirationMinutes").Value)),
             SigningCredentials = new SigningCredentials
                 (authSigningKey, SecurityAlgorithms.HmacSha256)
         };
@@ -58,6 +66,22 @@ public class TokenService : ITokenService
     
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string accessToken)
     {
+        // Create a symmetric security key using the secret key from the configuration.
+        SymmetricSecurityKey authSigningKey;
+
+        if (_configuration.GetSection("IsDev").Value != null)
+        {
+            //for debug only
+            authSigningKey = new SymmetricSecurityKey
+                (Encoding.UTF8.GetBytes(_configuration["JWT_SECRET"]));
+            
+        }
+        else
+        {
+            authSigningKey = new SymmetricSecurityKey
+                (Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")));
+        }
+        
         // Define the token validation parameters used to validate the token.
         var tokenValidationParameters = new TokenValidationParameters
         {
@@ -67,8 +91,7 @@ public class TokenService : ITokenService
             ValidIssuer = _configuration["JWT:ValidIssuer"],
             ValidateLifetime = false, 
             ClockSkew = TimeSpan.Zero,
-            IssuerSigningKey = new SymmetricSecurityKey
-                (Encoding.UTF8.GetBytes(_configuration["JWT:secret"]))
+            IssuerSigningKey = authSigningKey
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();

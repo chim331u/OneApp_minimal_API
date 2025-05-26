@@ -16,3 +16,6 @@ docker run --restart always --name fc_minimal_api -d -p 30109:8080 -v /share/CAC
  Environment Variables:
 
 -e "SECRET_VAR=mysecret" \
+++
+JWT:Secret --> JWT_SECRET
+CRYPTO:MasterKey --> CRYPTO_MASTERKEY

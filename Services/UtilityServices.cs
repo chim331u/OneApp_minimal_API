@@ -6,6 +6,12 @@ namespace OneApp_minimalApi.Services
 {
     public class UtilityServices : IUtilityServices
     {
+        private readonly IConfiguration _configuration;
+        public UtilityServices(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+        
         /// <summary>
         /// Get the time difference between two DateTime objects    
         /// /// </summary>
@@ -30,9 +36,21 @@ namespace OneApp_minimalApi.Services
             byte[] iv = new byte[16];
             byte[] array;
 
-            string key = "CryptoKey";
-            //Environment.GetEnvironmentVariable("JWT:Secret")
-            // key = Environment.GetEnvironmentVariable("ENCRYPT_KEY");
+            // key using the secret key from the configuration.
+            string key =string.Empty;
+
+            if (_configuration.GetSection("IsDev").Value != null)
+            {
+                //for debug only
+                key = _configuration["CRYPTO:MasterKey"];
+            
+            }
+            else
+            {
+                key = Environment.GetEnvironmentVariable("CRYPTO_MASTERKEY");
+            }
+            //string key = "CryptoKey";
+
 
             using (Aes aes = Aes.Create())
             {
@@ -87,7 +105,20 @@ namespace OneApp_minimalApi.Services
         {
             byte[] iv = new byte[16];
             byte[] buffer = Convert.FromBase64String(cipherText);
-            string key = "CryptoKey";
+
+            // key using the secret key from the configuration.
+            string key =string.Empty;
+
+            if (_configuration.GetSection("IsDev").Value != null)
+            {
+                //for debug only
+                key = _configuration["CRYPTO:MasterKey"];
+            
+            }
+            else
+            {
+                key = Environment.GetEnvironmentVariable("CRYPTO_MASTERKEY");
+            }
 
             try
             {

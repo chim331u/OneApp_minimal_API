@@ -43,6 +43,22 @@ namespace OneApp_minimalApi.Extensions
                 .AddEntityFrameworkStores<ApplicationContext>()
                 .AddDefaultTokenProviders();
 
+            // Create a symmetric security key using the secret key from the configuration.
+            SymmetricSecurityKey authSigningKey;
+
+            if (builder.Configuration.GetSection("IsDev").Value != null)
+            {
+                //for debug only
+                authSigningKey = new SymmetricSecurityKey
+                    (Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]));
+            
+            }
+            else
+            {
+                authSigningKey = new SymmetricSecurityKey
+                    (Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")));
+            }
+            
             builder.Services.AddAuthentication(options =>
                     {
                         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -61,8 +77,7 @@ namespace OneApp_minimalApi.Extensions
                             ValidAudience = builder.Configuration["JWT:ValidAudience"],
                             ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
                             ClockSkew = TimeSpan.Zero,
-                            IssuerSigningKey =
-                                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secret"]))
+                            IssuerSigningKey =authSigningKey
                         };
                     }
                 );
