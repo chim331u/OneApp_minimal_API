@@ -176,4 +176,59 @@ public class IdentityService : IIdentityService
             return new ApiResponse<string>(ex.Message, "Unauthorized");
         }
     }
+
+    public async Task<ApiResponse<string>> RefreshToken(TokenModelDto model)
+    {
+        try
+        {
+            var principal = _tokenService.GetPrincipalFromExpiredToken(model.AccessToken);
+            var username = principal.Identity.Name;
+
+            var tokenInfo = _context.TokenInfo.SingleOrDefault(u => u.Username == username);
+
+            if (tokenInfo == null || tokenInfo.RefreshToken != model.RefreshToken || tokenInfo.ExpiredAt <= DateTime.UtcNow)
+            {
+                return new ApiResponse<string>("Invalid refresh token. Please login again.", "BadRequest");
+            }
+
+            var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims);
+            var newRefreshToken = _tokenService.GenerateRefreshToken();
+
+            tokenInfo.RefreshToken = newRefreshToken; // rotating the refresh token
+            await _context.SaveChangesAsync();
+
+            return new ApiResponse<string>(JsonSerializer.Serialize(new TokenModelDto
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            }), "Ok");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return new ApiResponse<string>(ex.Message, "BadRequest");
+        }
+    }
+
+    public async Task<ApiResponse<string>> RevokeToken(string username)
+    {
+        try
+        {
+            var user = _context.TokenInfo.SingleOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return new  ApiResponse<string>("User with this username is not registered with us.", "BadRequest");
+            }
+
+            user.RefreshToken = string.Empty;
+            await _context.SaveChangesAsync();
+
+            return new ApiResponse<string>("User revoked", "Ok");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return new ApiResponse<string>(ex.Message, "Unauthorized");
+        }
+    }
 }

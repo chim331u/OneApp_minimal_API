@@ -41,6 +41,39 @@ public static class IdentityEndpoint
             return Results.BadRequest();
         });
         
+        app.MapPost("/RefreshToken", async (TokenModelDto model, IIdentityService identityService) =>
+        {
+            var refreshResult = await identityService.RefreshToken(model);
+
+            switch (refreshResult.Message)
+            {
+                case "BadRequest":
+                    return Results.BadRequest(refreshResult.Data);
+                case "Unauthorized":
+                    return Results.Unauthorized();
+                case "Ok":
+                    return Results.Ok(JsonSerializer.Deserialize<TokenModelDto>(refreshResult.Data));
+            }
+
+            return Results.BadRequest();
+        });
+        
+        app.MapPost("/RevokeToken", async (string username, IIdentityService identityService) =>
+        {
+            var revokeResult = await identityService.RevokeToken(username);
+
+            switch (revokeResult.Message)
+            {
+                case "BadRequest":
+                    return Results.BadRequest(revokeResult.Data);
+                case "Unauthorized":
+                    return Results.Unauthorized();
+                case "Ok":
+                    return Results.Ok();
+            }
+
+            return Results.BadRequest();
+        }).RequireAuthorization();
         return app;
     }    
 }
