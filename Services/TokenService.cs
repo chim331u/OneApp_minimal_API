@@ -10,37 +10,42 @@ namespace OneApp_minimalApi.Services;
 public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
-    public TokenService(IConfiguration configuration)
+    private readonly ILogger<ITokenService> _logger;
+    private readonly ILocalVaultService _localVaultService;
+    private const string JWTSecretName = "JWT:SECRET";
+
+    public TokenService(IConfiguration configuration, ILogger<ITokenService> logger,
+        ILocalVaultService localVaultService)
     {
+        _logger = logger;
+        _localVaultService = localVaultService;
         _configuration = configuration;
     }
-    
+
     public string GenerateAccessToken(IEnumerable<Claim> claims)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
 
-        // Create a symmetric security key using the secret key from the configuration.
-        SymmetricSecurityKey authSigningKey;
+        var result = _localVaultService.GetSecret(JWTSecretName);
 
-        if (_configuration.GetSection("IsDev").Value != null)
+        string key = result.Result.Data.Value;
+
+        if (result.Result.Data == null)
         {
-            //for debug only
-            authSigningKey = new SymmetricSecurityKey
-                (Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
-            
+            _logger.LogWarning($"No key found in LocalVault for {JWTSecretName}");
+            return "No key found";
         }
-        else
-        {
-            authSigningKey = new SymmetricSecurityKey
-                (Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT:Secret")));
-        }
-        
+
+        // Create a symmetric security key using the secret key from the configuration.
+        SymmetricSecurityKey authSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key));
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Issuer = _configuration["JWT:ValidIssuer"],
             Audience = _configuration["JWT:ValidAudience"],
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration.GetSection("TokenExpirationMinutes").Value)),
+            Expires = DateTime.Now.AddMinutes(
+                Convert.ToDouble(_configuration.GetSection("TokenExpirationMinutes").Value)),
             SigningCredentials = new SigningCredentials
                 (authSigningKey, SecurityAlgorithms.HmacSha256)
         };
@@ -49,7 +54,7 @@ public class TokenService : ITokenService
 
         return tokenHandler.WriteToken(token);
     }
-    
+
     public string GenerateRefreshToken()
     {
         // Create a 32-byte array to hold cryptographically secure random bytes
@@ -63,25 +68,13 @@ public class TokenService : ITokenService
         // Convert the random bytes to a base64 encoded string 
         return Convert.ToBase64String(randomNumber);
     }
-    
+
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string accessToken)
     {
         // Create a symmetric security key using the secret key from the configuration.
-        SymmetricSecurityKey authSigningKey;
+        SymmetricSecurityKey authSigningKey = new SymmetricSecurityKey
+            (Encoding.UTF8.GetBytes(_configuration[JWTSecretName]));
 
-        if (_configuration.GetSection("IsDev").Value != null)
-        {
-            //for debug only
-            authSigningKey = new SymmetricSecurityKey
-                (Encoding.UTF8.GetBytes(_configuration["JWT_SECRET"]));
-            
-        }
-        else
-        {
-            authSigningKey = new SymmetricSecurityKey
-                (Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")));
-        }
-        
         // Define the token validation parameters used to validate the token.
         var tokenValidationParameters = new TokenValidationParameters
         {
@@ -89,7 +82,7 @@ public class TokenService : ITokenService
             ValidateAudience = true,
             ValidAudience = _configuration["JWT:ValidAudience"],
             ValidIssuer = _configuration["JWT:ValidIssuer"],
-            ValidateLifetime = false, 
+            ValidateLifetime = false,
             ClockSkew = TimeSpan.Zero,
             IssuerSigningKey = authSigningKey
         };
@@ -97,7 +90,8 @@ public class TokenService : ITokenService
         var tokenHandler = new JwtSecurityTokenHandler();
 
         // Validate the token and extract the claims principal and the security token.
-        var principal = tokenHandler.ValidateToken(accessToken, tokenValidationParameters, out SecurityToken securityToken);
+        var principal =
+            tokenHandler.ValidateToken(accessToken, tokenValidationParameters, out SecurityToken securityToken);
 
         // Cast the security token to a JwtSecurityToken for further validation.
         var jwtSecurityToken = securityToken as JwtSecurityToken;
@@ -105,7 +99,7 @@ public class TokenService : ITokenService
         // Ensure the token is a valid JWT and uses the HmacSha256 signing algorithm.
         // If no throw new SecurityTokenException
         if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals
-                (SecurityAlgorithms.HmacSha256,StringComparison.InvariantCultureIgnoreCase))
+                (SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
         {
             throw new SecurityTokenException("Invalid token");
         }
@@ -113,6 +107,4 @@ public class TokenService : ITokenService
         // return the principal
         return principal;
     }
-    
-    
 }

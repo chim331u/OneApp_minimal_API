@@ -7,11 +7,19 @@ namespace OneApp_minimalApi.Services
     public class UtilityServices : IUtilityServices
     {
         private readonly IConfiguration _configuration;
-        public UtilityServices(IConfiguration configuration)
+        private readonly ILogger<IUtilityServices> _logger;
+        private readonly ILocalVaultService _localVaultService;
+        private const string MasterKeyCryptoName = "CRYPTO:MASTERKEY";
+
+        public UtilityServices(IConfiguration configuration, ILogger<IUtilityServices> logger,
+            ILocalVaultService localVaultService)
         {
+            _logger = logger;
+            _localVaultService = localVaultService;
+            // Initialize the configuration
             _configuration = configuration;
         }
-        
+
         /// <summary>
         /// Get the time difference between two DateTime objects    
         /// /// </summary>
@@ -36,21 +44,30 @@ namespace OneApp_minimalApi.Services
             byte[] iv = new byte[16];
             byte[] array;
 
-            // key using the secret key from the configuration.
-            string key =string.Empty;
+            // // key using the secret key from the configuration.
+            // string key =string.Empty;
+            //
+            // if (_configuration.GetSection("IsDev").Value != null)
+            // {
+            //     //for debug only
+            //     key = _configuration["CRYPTO:MasterKey"];
+            //
+            // }
+            // else
+            // {
+            //     key = Environment.GetEnvironmentVariable("CRYPTO_MASTERKEY");
+            // }
+            // //string key = "CryptoKey";
 
-            if (_configuration.GetSection("IsDev").Value != null)
-            {
-                //for debug only
-                key = _configuration["CRYPTO:MasterKey"];
-            
-            }
-            else
-            {
-                key = Environment.GetEnvironmentVariable("CRYPTO_MASTERKEY");
-            }
-            //string key = "CryptoKey";
+            var result = await _localVaultService.GetSecret(MasterKeyCryptoName);
 
+            string key = result.Data.Value;
+
+            if (result.Data == null)
+            {
+                _logger.LogWarning("No key found in LocalVault for CRYPTO:MasterKey");
+                return "No key found";
+            }
 
             using (Aes aes = Aes.Create())
             {
@@ -85,15 +102,14 @@ namespace OneApp_minimalApi.Services
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    _logger.LogError($"Error encrypting: {e.Message}");
                     return e.Message;
                 }
-           
             }
 
             return Convert.ToBase64String(array);
         }
-        
+
 
         /// <summary>
         /// Decrypt a string - Default key
@@ -107,17 +123,27 @@ namespace OneApp_minimalApi.Services
             byte[] buffer = Convert.FromBase64String(cipherText);
 
             // key using the secret key from the configuration.
-            string key =string.Empty;
+            //string key =string.Empty;
 
-            if (_configuration.GetSection("IsDev").Value != null)
+            // if (_configuration.GetSection("IsDev").Value != null)
+            // {
+            //     //for debug only
+            //     key = _configuration["CRYPTO:MasterKey"];
+            //
+            // }
+            // else
+            // {
+            //     key = Environment.GetEnvironmentVariable("CRYPTO_MASTERKEY");
+            // }
+
+            var result = await _localVaultService.GetSecret(MasterKeyCryptoName);
+
+            string key = result.Data.Value;
+
+            if (result.Data == null)
             {
-                //for debug only
-                key = _configuration["CRYPTO:MasterKey"];
-            
-            }
-            else
-            {
-                key = Environment.GetEnvironmentVariable("CRYPTO_MASTERKEY");
+                _logger.LogWarning($"No key found in LocalVault for {MasterKeyCryptoName}");
+                return "No key found";
             }
 
             try
@@ -128,7 +154,7 @@ namespace OneApp_minimalApi.Services
                     // here 16 bytes for AES128
                     keyBytes = pbkdf.GetBytes(16);
                 }
-                
+
                 using (Aes aes = Aes.Create())
                 {
                     aes.Key = keyBytes;
@@ -139,7 +165,8 @@ namespace OneApp_minimalApi.Services
 
                     using (MemoryStream memoryStream = new MemoryStream(buffer))
                     {
-                        using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, decryptor, CryptoStreamMode.Read))
+                        using (CryptoStream cryptoStream =
+                               new CryptoStream((Stream)memoryStream, decryptor, CryptoStreamMode.Read))
                         {
                             using (StreamReader streamReader = new StreamReader((Stream)cryptoStream))
                             {
@@ -148,23 +175,21 @@ namespace OneApp_minimalApi.Services
                         }
                     }
                 }
-
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogError($"Error decrypting: {e.Message}");
                 return e.Message;
             }
-           
         }
 
 
-/// <summary>
-/// Hash a string using SHA256
-/// </summary>
-/// <param name="input">string to hash</param>
-/// <returns>String with hash value in SHA256</returns>
-/// <remarks>Use this method to hash a string</remarks>
+        /// <summary>
+        /// Hash a string using SHA256
+        /// </summary>
+        /// <param name="input">string to hash</param>
+        /// <returns>String with hash value in SHA256</returns>
+        /// <remarks>Use this method to hash a string</remarks>
         public async Task<string> HashString_SHA256(string input)
         {
             using (SHA256 sha256Hash = SHA256.Create())
@@ -187,27 +212,26 @@ namespace OneApp_minimalApi.Services
         }
 
 
-/// <summary>
-/// Verify a hash using SHA256
-/// </summary>
-/// <param name="input">string to compare</param>
-/// <param name="hash">hash to campare</param>
-/// <returns>True id equals, else False</returns>
-/// <remarks>Use this method to verify a hash</remarks>
+        /// <summary>
+        /// Verify a hash using SHA256
+        /// </summary>
+        /// <param name="input">string to compare</param>
+        /// <param name="hash">hash to campare</param>
+        /// <returns>True id equals, else False</returns>
+        /// <remarks>Use this method to verify a hash</remarks>
         public async Task<bool> VerifyHash_SHA256(string input, string hash)
         {
             // Hash the input.
             string hashOfInput = await HashString_SHA256(input);
 
             // Create a StringComparer an compare the hashes.
-            StringComparer comparer = StringComparer.OrdinalIgnoreCase;           
+            StringComparer comparer = StringComparer.OrdinalIgnoreCase;
 
             return comparer.Compare(hashOfInput, hash) == 0;
         }
 
         public string GetLogFileText(string logFilePath)
         {
-
             if (string.IsNullOrEmpty(logFilePath))
             {
                 return null;
@@ -221,9 +245,8 @@ namespace OneApp_minimalApi.Services
 
                 logText = sr.ReadToEnd();
             }
+
             return logText;
         }
     }
-    
-    
 }

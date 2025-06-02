@@ -17,11 +17,20 @@ docker run --restart always --name fc_minimal_api -d -p 30109:8080 -v /share/CAC
 
 Secrets/Environment Variables:
 
-Dev:
-dotnet user-secrets init
-dotnet user-secrets set "JWT:Secret" "12345"
-dotnet user-secrets set "CRYPTO:MasterKey" "12345"
+//Dev:
+//dotnet user-secrets init
+//dotnet user-secrets set "JWT:SECRET" "12345"
+//dotnet user-secrets set "CRYPTO:MasterKey" "12345"
 
-Prod:
--e "JWT_SECRET=12345" \
--e "CRYPTO_MASTERKEY=12345" 
+//Prod:
+//-e "JWT_SECRET=12345" \
+//-e "CRYPTO_MASTERKEY=12345" 
+
+SECRET ON LOCAL VAULT:
+add MASTERKEY_SECRET:
+dotnet user-secrets set "MASTERKEY_SECRET" "12345" (dev)
+... -e "MASTERKEY_SECRET=12345" (prod)
+
+Add to local db:
+JWT:SECRET = 12345
+CRYPTO:MASTERKEY = 12345

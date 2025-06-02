@@ -12,17 +12,30 @@ namespace OneApp_minimalApi.Services;
 public class LocalVaultService : ILocalVaultService
 {
     private readonly ILogger<LocalVaultService> _logger; // Logger for logging information and errors
-    private readonly IUtilityServices _utility; // Utility class for common operations
     private readonly string _connectionString;
     private readonly string _secretValue;
+    private readonly IConfiguration _configuration;
+    private const string MasterKeySecretName = "MASTERKEY_SECRET";
 
-    public LocalVaultService(IConfiguration configuration, ILogger<LocalVaultService> logger, IUtilityServices utility)
+    public LocalVaultService(IConfiguration configuration, ILogger<LocalVaultService> logger)
     {
-        _utility = utility;
+        _configuration = configuration;
+        
         _logger = logger;
-        _secretValue = configuration["Masterkey:Secret"];
+        //for debug only
+        _secretValue = _configuration.GetSection("IsDev").Value != null ? configuration[MasterKeySecretName] : Environment.GetEnvironmentVariable(MasterKeySecretName);
+        
         _connectionString = configuration.GetConnectionString("LocalVaultConnection");
 
+        if (string.IsNullOrEmpty(_connectionString))
+        {
+            _logger.LogWarning("Connection string not set for LocalVaultService");
+        }
+        if (string.IsNullOrEmpty(_secretValue))
+        {
+            _logger.LogWarning("MasterKey is not set for LocalVaultService");
+        }
+        
         SQLitePCL.Batteries_V2.Init(); // This ensures SQLiteCipher is ready
     }
 
