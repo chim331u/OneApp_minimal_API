@@ -131,5 +131,9 @@ app.MapGroup("/api/v1/")
     .WithTags(" Identity endpoints")
     .MapIdentityEndPoint();
 
+app.MapGroup("/api/v1/")
+    .WithTags(" Local Vault endpoints")
+    .MapLocalVaultEndPoint();
+
 await DbSeeder.SeedData(app); 
 app.Run();
