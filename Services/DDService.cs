@@ -779,7 +779,7 @@ public class DDService : IDDService
     /// </summary>
     /// <param name="newSetting">The new setting to add.</param>
     /// <returns>The added setting as a <see cref="SettingDto"/> object.</returns>
-    public async Task<SettingDto> AddSetting(SettingDto newSetting)
+    public async Task<DDSettingDto> AddSetting(DDSettingDto newSetting)
     {
         try
         {

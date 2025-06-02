@@ -3,6 +3,7 @@ using OneApp_minimalApi.AppContext;
 using OneApp_minimalApi.Configurations;
 using OneApp_minimalApi.Contracts;
 using OneApp_minimalApi.Contracts.Configs;
+using OneApp_minimalApi.Contracts.DockerDeployer;
 using OneApp_minimalApi.Interfaces;
 
 namespace OneApp_minimalApi.Services;
@@ -46,6 +47,7 @@ public class SettingsService : ISettingsService
             return null!;
         }
     }
+    
     public async Task<ApiResponse<IEnumerable<SettingsDto>>> GetSettingsFullList()
     {
         try

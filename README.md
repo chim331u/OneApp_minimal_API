@@ -13,9 +13,15 @@ docker run --restart always --name oneapp_api -d -p 30119:8080 -v /Users/luca/Gi
 
 Prod
 docker run --restart always --name fc_minimal_api -d -p 30109:8080 -v /share/CACHEDEV2_DATA/Storage/Docker/file_categorization:/data -v /share/Download/Incoming:/incoming -v /share/Video/Serie:/serie fc_minimal_api_image:1.0
- Environment Variables:
+ 
 
--e "SECRET_VAR=mysecret" \
-++
-JWT:Secret --> JWT_SECRET
-CRYPTO:MasterKey --> CRYPTO_MASTERKEY
+Secrets/Environment Variables:
+
+Dev:
+dotnet user-secrets init
+dotnet user-secrets set "JWT:Secret" "12345"
+dotnet user-secrets set "CRYPTO:MasterKey" "12345"
+
+Prod:
+-e "JWT_SECRET=12345" \
+-e "CRYPTO_MASTERKEY=12345" 

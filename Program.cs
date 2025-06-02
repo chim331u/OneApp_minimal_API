@@ -124,7 +124,6 @@ app.MapGroup("/api/v1/")
 
 app.MapGroup("/api/v1/")
     .WithTags(" Settings endpoints")
-    .RequireAuthorization()
     .MapSettingsEndPoint();
 
 app.MapGroup("/api/v1/")

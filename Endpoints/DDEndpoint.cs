@@ -101,7 +101,7 @@ public static class DDEndpoint
         /// </summary>
         /// <param name="newSettingDto">The new setting data to add.</param>
         /// <param name="_ddService">The service to process the request.</param>
-        app.MapPut("/AddDDSetting", async (SettingDto newSettingDto, IDDService _ddService) =>
+        app.MapPut("/AddDDSetting", async (DDSettingDto newSettingDto, IDDService _ddService) =>
         {
             var result = await _ddService.AddSetting(newSettingDto);
             return Results.Ok(result);
