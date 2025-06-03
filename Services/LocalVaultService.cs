@@ -89,10 +89,8 @@ public class LocalVaultService : ILocalVaultService
         }
     }
 
-    public async Task<ApiResponse<List<SecretResponseDTO>>> GetListSecrets()
+    public async Task<ApiResponse<List<SecretsListDto>>> GetListSecrets()
     {
-        //var result = new LocalSecret();
-
         try
         {
             using var connection = CreateConnection();
@@ -101,13 +99,13 @@ public class LocalVaultService : ILocalVaultService
             var result = connection.QueryMultiple(sql, null).Read<LocalSecret>();
 
             _logger.LogInformation($"{result.Count()} retrieved secrets");
-            return new ApiResponse<List<SecretResponseDTO>>(result.Select(Mapper.FromModelToSecretResponseDto).ToList(),
+            return new ApiResponse<List<SecretsListDto>>(result.Select(Mapper.FromModelToSecretListDto).ToList(),
                 $"{result.Count()} local Secret retrieved");
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex);
-            return new ApiResponse<List<SecretResponseDTO>>(null, $"Error retrieving secrets: {ex.Message}");
+            return new ApiResponse<List<SecretsListDto>>(null, $"Error retrieving secrets: {ex.Message}");
         }
     }
 
@@ -140,14 +138,13 @@ public class LocalVaultService : ILocalVaultService
 
     public async Task<ApiResponse<SecretResponseDTO>> StoreSecret(SecretRequestDTO secret)
     {
-        secret.CreateDate = DateTime.UtcNow;
-
+        
         try
         {
             using var connection = CreateConnection();
             string sql = $"INSERT INTO LocalSecret(Key,Value,CreateDate) VALUES (@Key,@Value,@CreateDate)";
 
-            var result = connection.Execute(sql, new { secret.Key, secret.Value, secret.CreateDate });
+            var result = connection.Execute(sql, new { secret.Key, secret.Value, DateTime.Now });
             if (result > 0)
             {
                 _logger.LogInformation("New secret added");

@@ -4,6 +4,7 @@ using OneApp_minimalApi.Configurations;
 using OneApp_minimalApi.Contracts;
 using OneApp_minimalApi.Contracts.Configs;
 using OneApp_minimalApi.Contracts.DockerDeployer;
+using OneApp_minimalApi.Contracts.Vault;
 using OneApp_minimalApi.Interfaces;
 
 namespace OneApp_minimalApi.Services;
@@ -14,6 +15,7 @@ public class SettingsService : ISettingsService
     private readonly ILogger<SettingsService> _logger; // Logger for logging information and errors
     private readonly IConfiguration _config;
     private readonly IUtilityServices _utilityServices;
+    private readonly ILocalVaultService _localVaultService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsService"/> class.
@@ -22,12 +24,13 @@ public class SettingsService : ISettingsService
     /// <param name="logger">The logger for logging information and errors.</param>
     /// <param name="config">The application configuration.</param>
     public SettingsService(ApplicationContext context, ILogger<SettingsService> logger, IConfiguration config,
-        IUtilityServices utilityServices)
+        IUtilityServices utilityServices, ILocalVaultService localVaultService)
     {
         _context = context;
         _logger = logger;
         _config = config;
         _utilityServices = utilityServices;
+        _localVaultService = localVaultService;
     }
 
 
@@ -93,8 +96,19 @@ public class SettingsService : ISettingsService
             setting.CreatedDate = DateTime.Now;
             setting.IsActive = true;
             setting.LastUpdatedDate = DateTime.Now;
-            setting.Password = await _utilityServices.EncryptString(settingsDto.Password);
+            //setting.Password = await _utilityServices.EncryptString(settingsDto.Password);
+            setting.Password = Guid.NewGuid().ToString();
 
+            var secreteStored =
+            _localVaultService.StoreSecret(new SecretRequestDTO()
+                {Key = setting.Password, Value = settingsDto.Password });
+
+            if (secreteStored.Result.Data == null)
+            {
+                _logger.LogError($"Unable to save new secret: {secreteStored}");
+                return new ApiResponse<SettingsDto>(null, secreteStored.Result.Message);
+            }
+            
             await _context.DDSettings.AddAsync(setting);
             await _context.SaveChangesAsync();
 
@@ -123,10 +137,29 @@ public class SettingsService : ISettingsService
             existingItem.LastUpdatedDate = DateTime.Now;
 
             if (!string.IsNullOrEmpty(settings.User)) existingItem.UserName = settings.User;
-
+            
             if (!settings.Password.Equals(existingItem.Password))
             {
-                existingItem.Password = await _utilityServices.EncryptString(settings.Password);    
+                //password is changed:
+                //save settings.psw in vault
+                
+                //existingItem.Password = await _utilityServices.EncryptString(settings.Password);
+                
+                //TODO manage the password history
+                var secretToUpdate = _localVaultService.GetSecret(existingItem.Password).Result.Data;
+                
+                var updateSecret =
+                    _localVaultService.UpdateSecret(secretToUpdate.Id, new SecretRequestDTO()
+                    {
+                        Value = settings.Password, Key = secretToUpdate.Key
+                    });
+
+                if (updateSecret.Result.Data == null)
+                {
+                    _logger.LogError($"Unable to save new secret: {updateSecret.Result.Message}");
+                    return new ApiResponse<SettingsDto>(null!, $"Unable to save new secret: {updateSecret.Result.Message}");
+                }
+                
             }
             
             if (!string.IsNullOrEmpty(settings.Alias)) existingItem.Alias = settings.Alias;

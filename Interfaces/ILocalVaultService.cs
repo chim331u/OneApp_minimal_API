@@ -7,7 +7,7 @@ public interface ILocalVaultService
 {
     Task<ApiResponse<bool>> CreateDatabase();
     
-    Task<ApiResponse<List<SecretResponseDTO>>> GetListSecrets();
+    Task<ApiResponse<List<SecretsListDto>>> GetListSecrets();
     Task<ApiResponse<SecretResponseDTO>> GetSecret(string key);
     
     Task<ApiResponse<SecretResponseDTO>> StoreSecret(SecretRequestDTO secret);

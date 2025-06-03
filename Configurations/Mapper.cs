@@ -245,7 +245,7 @@ public static class Mapper
     public static LocalSecret LocalSecretRequestDtoToModel(SecretRequestDTO secretDto)
     {
         return new LocalSecret()
-            {Key = secretDto.Key, CreateDate = secretDto.CreateDate, Value = secretDto.Value};
+            {Key = secretDto.Key, Value = secretDto.Value};
     }
 
     public static SecretResponseDTO FromModelToSecretResponseDto(LocalSecret secret)
@@ -255,5 +255,11 @@ public static class Mapper
             Id = secret.Id, Key = secret.Key, Value = secret.Value
         };
     }
-    
+    public static SecretsListDto FromModelToSecretListDto(LocalSecret secret)
+    {
+        return new SecretsListDto()
+        {
+            Id = secret.Id, Key = secret.Key
+        };
+    }
 }
