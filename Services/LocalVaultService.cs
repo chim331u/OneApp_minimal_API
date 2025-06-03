@@ -144,7 +144,8 @@ public class LocalVaultService : ILocalVaultService
             using var connection = CreateConnection();
             string sql = $"INSERT INTO LocalSecret(Key,Value,CreateDate) VALUES (@Key,@Value,@CreateDate)";
 
-            var result = connection.Execute(sql, new { secret.Key, secret.Value, DateTime.Now });
+            var CreateDate = DateTime.Now;
+            var result = connection.Execute(sql, new { secret.Key, secret.Value, CreateDate });
             if (result > 0)
             {
                 _logger.LogInformation("New secret added");

@@ -19,6 +19,7 @@ public class DockerCommandService : IDockerCommandService
     private readonly ApplicationContext _context; // Database context
     private readonly ILogger<DockerCommandService> _logger; // Logger for logging information and errors
     private readonly IUtilityServices _utilityServices; // Utility services for encryption and other utilities
+    private readonly ILocalVaultService _localVaultService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DockerCommandService"/> class.
@@ -27,11 +28,12 @@ public class DockerCommandService : IDockerCommandService
     /// <param name="logger">The logger for logging information and errors.</param>
     /// <param name="utilityServices">The utility services for encryption and other utilities.</param>
     public DockerCommandService(ApplicationContext context, ILogger<DockerCommandService> logger,
-        IUtilityServices utilityServices)
+        IUtilityServices utilityServices, ILocalVaultService localVaultService)
     {
         _context = context;
         _logger = logger;
         _utilityServices = utilityServices;
+        _localVaultService = localVaultService;
     }
 
     #region Commands
@@ -141,7 +143,8 @@ public class DockerCommandService : IDockerCommandService
 
         var myDockerRepoUsername = dockerConfig.DockerRepositorySettings.UserName;
         var myDockerRepoPassword =
-            await _utilityServices.DecryptString(dockerConfig.DockerRepositorySettings.Password);
+            _localVaultService.GetSecret(dockerConfig.DockerRepositorySettings.Password).Result.Data.Value;
+            //await _utilityServices.DecryptString(dockerConfig.DockerRepositorySettings.Password);
 
         var dockingRegistryLogin = $"docker login -u {myDockerRepoUsername} -p {myDockerRepoPassword} docker.io";
 
@@ -265,7 +268,8 @@ public class DockerCommandService : IDockerCommandService
             }
 
             using var client = new SshClient(dockerConfig.NasSettings.Address, dockerConfig.NasSettings.UserName,
-                await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
+                 _localVaultService.GetSecret(dockerConfig.NasSettings.Password).Result.Data.Value);
+                //await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
             client.Connect();
 
             _logger.LogInformation($"SSH Command '{command}' is sent...");
@@ -474,7 +478,8 @@ public class DockerCommandService : IDockerCommandService
             if (dockerConfig.NasSettings != null)
             {
                 using var client = new SftpClient(dockerConfig.NasSettings.Address, dockerConfig.NasSettings.UserName,
-                    await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
+                    _localVaultService.GetSecret(dockerConfig.NasSettings.Password).Result.Data.Value);
+                    //await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
                 client.Connect();
                 _logger.LogInformation($"Client connected to NAS");
 

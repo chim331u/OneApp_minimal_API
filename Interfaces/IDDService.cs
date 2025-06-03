@@ -9,7 +9,7 @@ public interface IDDService
     Task<string> UseLink(int linkId);
     Task<List<ThreadsDto>> GetActiveThreads();
     Task<List<Ed2kLinkDto>> GetActiveLinks(int threadId);
-    Task<DDSettingDto> AddSetting(DDSettingDto dto);
+    // Task<DDSettingDto> AddSetting(DDSettingDto dto);
 }
 
 
