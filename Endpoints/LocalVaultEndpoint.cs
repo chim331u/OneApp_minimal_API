@@ -62,11 +62,49 @@ public static class LocalVaultEndpoint
             }
             
             return Results.Ok(result.Data);
-            
 
         });
         
+        app.MapPut("/UpdateSecret/{id:int}", async (int id, SecretRequestDTO secret, ILocalVaultService _service) =>
+        {
+            var result = await _service.UpdateSecret(id, secret);
+            
+            if (result.Data == null)
+            {
+                return Results.BadRequest(result.Message);
+            }
+            
+            return Results.Ok(result.Data);
+
+        });
         
+        app.MapPut("/ChangeSecretPsw/{id:int}", async (int id, SecretRequestDTO secret, ILocalVaultService _service) =>
+        {
+            var result = await _service.UpdateSecret(id, secret, true);
+            
+            if (result.Data == null)
+            {
+                return Results.BadRequest(result.Message);
+            }
+            
+            return Results.Ok(result.Data);
+
+        });
+
+        /// <summary>
+        /// Endpoint to mangage secrets in a local valut.
+        /// </summary>
+        app.MapGet("/GetHistoricalSecretsList", async (ILocalVaultService _service) =>
+        {
+            var result = await _service.GetHistorySecretList();
+
+            if (result.Data == null)
+            {
+                return Results.NotFound(result.Message);
+            }
+            
+            return Results.Ok(result.Data);
+        });
         return app;
     }
 }

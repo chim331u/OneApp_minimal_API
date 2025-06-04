@@ -76,9 +76,14 @@ public class LocalVaultService : ILocalVaultService
         using var connection = CreateConnection();
         try
         {
-            string sql2 =
+            string sql1 =
                 "CREATE TABLE IF NOT EXISTS LocalSecret (Id INTEGER PRIMARY KEY, key TEXT,value TEXT, CreateDate DATETIME)";
+            connection.Execute(sql1);
+            
+            string sql2 =
+                "CREATE TABLE IF NOT EXISTS HistoricalSecret (Id INTEGER PRIMARY KEY, SecretId INTEGER, key TEXT,value TEXT, SecretCreateDate DATETIME, SecretEndDate DATETIME)";
             connection.Execute(sql2);
+            
             _logger.LogInformation("Database created");
             return new ApiResponse<bool>(true, "Database created");
         }
@@ -174,7 +179,7 @@ public class LocalVaultService : ILocalVaultService
 
             string sql = $"UPDATE LocalSecret SET Key=@Key, Value=@Value WHERE Id=@Id";
 
-            var result = connection.Execute(sql, new { storedSecret.Key, storedSecret.Value, storedSecret.Id });
+            var result = connection.Execute(sql, new { secret.Key, secret.Value, storedSecret.Id });
             if (result > 0)
             {
                 _logger.LogInformation("Secret updated");
@@ -194,6 +199,87 @@ public class LocalVaultService : ILocalVaultService
         }
     }
 
+    public async Task<ApiResponse<SecretResponseDTO>> UpdateSecret(int id, SecretRequestDTO secret, bool passwordChange)
+    {
+        try
+        {
+            using var connection = CreateConnection();
+            //get the secret
+            var storedSecret =
+                connection.QueryFirstOrDefault<LocalSecret>($"SELECT * From LocalSecret Where Id=@id", new { id });
+
+
+            string sql = $"UPDATE LocalSecret SET Key=@Key, Value=@Value WHERE Id=@Id";
+
+            var result = connection.Execute(sql, new { secret.Key, secret.Value, storedSecret.Id });
+            if (result == 0)
+            {
+                
+                _logger.LogInformation("No secret(s) updated");
+                return new ApiResponse<SecretResponseDTO>(null, "Unable to update the Local Secret");
+            }
+
+            _logger.LogInformation("Secret updated");
+                // Add in history password 
+                HistoryPasswordAdd(storedSecret);
+            return new ApiResponse<SecretResponseDTO>(GetSecret(storedSecret.Key).Result.Data,
+                "Local Secret updated");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error update secret: {ex.Message}");
+            return new ApiResponse<SecretResponseDTO>(null, $"Error updating secret: {ex.Message}");
+        }
+    }
+
+    private void HistoryPasswordAdd(LocalSecret storedSecret)
+    {
+        try
+        {
+            using var connection = CreateConnection();
+            string sql = $"INSERT INTO HistoricalSecret(SecretId,Key,Value,SecretCreateDate,SecretEndDate) VALUES (@Id,@Key,@Value,@CreateDate, @SecretEndDate)";
+
+            var SecretEndDate = DateTime.Now;
+            var CreateDate = DateTime.Now;
+            var result = connection.Execute(sql, new {storedSecret.Id, storedSecret.Key, storedSecret.Value, storedSecret.CreateDate, SecretEndDate });
+            if (result > 0)
+            {
+                _logger.LogInformation("History secret added");
+                return;
+            }
+
+            _logger.LogInformation("No history secret(s) added");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error adding history secret: {ex.Message}");
+        }
+    }
+
+    public async Task<ApiResponse<List<HistoricalSecret>>> GetHistorySecretList()
+    {
+        try
+        {
+            using var connection = CreateConnection();
+            string sql = $"SELECT * From HistoricalSecret ORDER BY SecretEndDate DESC";
+
+            var result = connection.QueryMultiple(sql, null).Read<HistoricalSecret>();
+            _logger.LogInformation($"Retrieved history secret");
+
+            if (result == null)
+            {
+                return new ApiResponse<List<HistoricalSecret>>(null, "No history secret returned");
+            }
+
+            return new ApiResponse<List<HistoricalSecret>>(result.ToList(),
+                "Local Secret history retrieved");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return new ApiResponse<List<HistoricalSecret>>(null, $"Error retrieving history secret: {e.Message}");
+        }
+    }
     public async Task<ApiResponse<bool>> DeleteSecret(int id)
     {
         try

@@ -141,11 +141,7 @@ public class SettingsService : ISettingsService
             if (!settings.Password.Equals(existingItem.Password))
             {
                 //password is changed:
-                //save settings.psw in vault
                 
-                //existingItem.Password = await _utilityServices.EncryptString(settings.Password);
-                
-                //TODO manage the password history
                 var secretToUpdate = _localVaultService.GetSecret(existingItem.Password).Result.Data;
                 
                 var updateSecret =
@@ -185,6 +181,13 @@ public class SettingsService : ISettingsService
         }
     }
 
+    private bool HistoryPasswordAdd(string password)
+    {
+        // Check if the password exists in the history
+        // This is a placeholder for actual implementation
+        return false;
+    }
+    
     public async Task<ApiResponse<bool>> DeleteSetting(int id)
     {
         try
