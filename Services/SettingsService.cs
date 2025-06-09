@@ -148,7 +148,7 @@ public class SettingsService : ISettingsService
                     _localVaultService.UpdateSecret(secretToUpdate.Id, new SecretRequestDTO()
                     {
                         Value = settings.Password, Key = secretToUpdate.Key
-                    });
+                    }, true);
 
                 if (updateSecret.Result.Data == null)
                 {

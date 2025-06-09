@@ -90,6 +90,18 @@ public static class LocalVaultEndpoint
             return Results.Ok(result.Data);
 
         });
+        
+        app.MapDelete("/DeleteSecret/{id:int}", async (int id, ILocalVaultService _service) =>
+        {
+            var result = await _service.DeleteSecret(id);
+            
+            if (!result.Data)
+            {
+                return Results.NotFound(result.Message);
+            }
+            
+            return Results.NoContent();
+        });
 
         /// <summary>
         /// Endpoint to mangage secrets in a local valut.

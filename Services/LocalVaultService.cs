@@ -180,6 +180,7 @@ public class LocalVaultService : ILocalVaultService
             string sql = $"UPDATE LocalSecret SET Key=@Key, Value=@Value WHERE Id=@Id";
 
             var result = connection.Execute(sql, new { secret.Key, secret.Value, storedSecret.Id });
+
             if (result > 0)
             {
                 _logger.LogInformation("Secret updated");
