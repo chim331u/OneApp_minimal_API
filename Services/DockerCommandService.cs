@@ -821,4 +821,49 @@ public class DockerCommandService : IDockerCommandService
         _logger.LogInformation($"Image Pushed : {pushCommand.Data} ");
         return new DockerCommandResponse<string>(pushResult.Data, "PushImage", true);
     }
+    
+    // public async Task<List<DownloadFile>> AddEd2kLink(string ed2kLink)
+    // {
+    //     var param = new Dictionary<string, string>();
+    //     param.Add("Submit", "Download link");
+    //     param.Add("ed2klink", ed2kLink);
+    //     param.Add("selectcat", "all");
+    //
+    //     var result = await _networkHelperServices.PostRequest(_footer, param);
+    //
+    //     if (!string.IsNullOrEmpty(result))
+    //     {
+    //         return ParseDownloading(result);
+    //     }
+    //
+    //     return null;
+    //
+    // }
+    //
+    //
+    // public async Task<string> PostRequest(string page, Dictionary<string, string> parameters )
+    // {
+    //     try
+    //     {
+    //         var url = _utilityServices.ApiUrl + page;
+    //         using var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = new FormUrlEncodedContent(parameters) };
+    //         var result = await httpClient.SendAsync(req);
+    //
+    //         if (result.IsSuccessStatusCode)
+    //         {
+    //             return await result.Content.ReadAsStringAsync();
+    //         }
+    //
+    //         _logger.LogWarning($"Post command response: {result.StatusCode}");
+    //         return string.Empty;
+    //
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError($"Error post command: {ex.Message}");
+    //         return string.Empty;
+    //
+    //     }
+    //
+    // }
 }
