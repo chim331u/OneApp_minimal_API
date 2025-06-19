@@ -130,9 +130,9 @@ app.MapGroup("/api/v1/")
     .WithTags(" Identity endpoints")
     .MapIdentityEndPoint();
 
-app.MapGroup("/api/v1/")
-    .WithTags(" Local Vault endpoints")
-    .MapLocalVaultEndPoint();
+app.MapGroup("/api/v2/")
+    .WithTags(" Hashicorp Vault endpoints")
+    .MapHashiCorpVaultEndPoint();
 
 await DbSeeder.SeedData(app); 
 app.Run();

@@ -11,22 +11,25 @@ public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<ITokenService> _logger;
-    private readonly ILocalVaultService _localVaultService;
+    private readonly IHashicorpVaultService _vaultService;
     private const string JWTSecretName = "JWT:SECRET";
-
+    private const string VaultPath = "Tokens";
+    private string VaultMountPoint;
     public TokenService(IConfiguration configuration, ILogger<ITokenService> logger,
-        ILocalVaultService localVaultService)
+        IHashicorpVaultService vaultService)
     {
         _logger = logger;
-        _localVaultService = localVaultService;
+        _vaultService = vaultService;
         _configuration = configuration;
+        
+        VaultMountPoint = _configuration["VaultMountPoint"];
     }
 
     public string GenerateAccessToken(IEnumerable<Claim> claims)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
 
-        var result = _localVaultService.GetSecret(JWTSecretName);
+        var result = _vaultService.GetSecret(JWTSecretName, VaultPath, VaultMountPoint);
 
         string key = result.Result.Data.Value;
 

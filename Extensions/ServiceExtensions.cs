@@ -96,7 +96,7 @@ namespace OneApp_minimalApi.Extensions
             builder.Services.AddScoped<ISettingsService, SettingsService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IIdentityService, IdentityService>();
-            builder.Services.AddScoped<ILocalVaultService, LocalVaultService>();
+            builder.Services.AddScoped<IHashicorpVaultService, HashiCorpVaultService>();
 
 
             // Register exception handler

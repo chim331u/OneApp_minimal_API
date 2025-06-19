@@ -19,7 +19,7 @@ public class DDService : IDDService
     private readonly ILogger<DDService> _logger; // Logger for logging information and errors
     private readonly IConfiguration _config; // Configuration settings
     private readonly IUtilityServices _utility; // Utility class for common operations
-    private readonly ILocalVaultService _localVaultService;
+    private readonly IHashicorpVaultService _vaultService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DDService"/> class.
@@ -28,13 +28,13 @@ public class DDService : IDDService
     /// <param name="logger">The logger for logging information and errors.</param>
     /// <param name="config">The configuration settings.</param>
     /// <param name="utility">The utility service for common operations.</param>
-    public DDService(ApplicationContext context, ILogger<DDService> logger, IConfiguration config, IUtilityServices utility, ILocalVaultService localVaultService)
+    public DDService(ApplicationContext context, ILogger<DDService> logger, IConfiguration config, IUtilityServices utility, IHashicorpVaultService vaultService)
     {
         _utility = utility;
         _context = context;
         _logger = logger;
         _config = config;
-        _localVaultService = localVaultService;
+        _vaultService = vaultService;
     }
 
     /// <summary>
@@ -338,7 +338,7 @@ public class DDService : IDDService
         if (_setting != null)
         {
              var _ddUserName = _setting.UserName;
-             var _ddPassword = _localVaultService.GetSecret(_setting.Password).Result.Data.Value;
+             var _ddPassword = _vaultService.GetSecret(_setting.Password, _setting.Type.ToString(), _config["VaultMountPoint"]).Result.Data.Value;
 
             var clientHandler = new HttpClientHandler
             {

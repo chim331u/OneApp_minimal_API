@@ -41,9 +41,9 @@
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.1.11" />
         <PackageReference Include="SSH.NET" Version="2024.2.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+        <PackageReference Include="VaultSharp" Version="1.17.5.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -53,6 +53,12 @@
       <Folder Include="Temp\FCLog\" />
       <Folder Include="Temp\OneAppLog\" />
       <Folder Include="Temp\Orig\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Endpoints\LocalVaultEndpoint.cs" />
+      <Compile Remove="Interfaces\ILocalVaultService.cs" />
+      <Compile Remove="Services\LocalVaultService.cs" />
     </ItemGroup>
 
 </Project>

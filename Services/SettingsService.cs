@@ -15,8 +15,11 @@ public class SettingsService : ISettingsService
     private readonly ILogger<SettingsService> _logger; // Logger for logging information and errors
     private readonly IConfiguration _config;
     private readonly IUtilityServices _utilityServices;
-    private readonly ILocalVaultService _localVaultService;
+    private readonly IHashicorpVaultService _vaultService;
 
+    private string VaultMountPoint;
+
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsService"/> class.
     /// </summary>
@@ -24,13 +27,15 @@ public class SettingsService : ISettingsService
     /// <param name="logger">The logger for logging information and errors.</param>
     /// <param name="config">The application configuration.</param>
     public SettingsService(ApplicationContext context, ILogger<SettingsService> logger, IConfiguration config,
-        IUtilityServices utilityServices, ILocalVaultService localVaultService)
+        IUtilityServices utilityServices, IHashicorpVaultService vaultService)
     {
         _context = context;
         _logger = logger;
         _config = config;
         _utilityServices = utilityServices;
-        _localVaultService = localVaultService;
+        _vaultService = vaultService;
+        
+        VaultMountPoint = _config["VaultMountPoint"];
     }
 
 
@@ -96,12 +101,11 @@ public class SettingsService : ISettingsService
             setting.CreatedDate = DateTime.Now;
             setting.IsActive = true;
             setting.LastUpdatedDate = DateTime.Now;
-            //setting.Password = await _utilityServices.EncryptString(settingsDto.Password);
             setting.Password = Guid.NewGuid().ToString();
 
             var secreteStored =
-            _localVaultService.StoreSecret(new SecretRequestDTO()
-                {Key = setting.Password, Value = settingsDto.Password });
+            _vaultService.CreateSecret(new SecretRequestDTO()
+                {Key = setting.Password, Value = settingsDto.Password, Path = settingsDto.Type.ToString(), MountVolume = VaultMountPoint});
 
             if (secreteStored.Result.Data == null)
             {
@@ -142,13 +146,11 @@ public class SettingsService : ISettingsService
             {
                 //password is changed:
                 
-                var secretToUpdate = _localVaultService.GetSecret(existingItem.Password).Result.Data;
-                
                 var updateSecret =
-                    _localVaultService.UpdateSecret(secretToUpdate.Id, new SecretRequestDTO()
+                    _vaultService.UpdateSecret(new SecretRequestDTO()
                     {
-                        Value = settings.Password, Key = secretToUpdate.Key
-                    }, true);
+                        Value = settings.Password, Key = existingItem.Password, Path = existingItem.Type.ToString(), MountVolume = VaultMountPoint
+                    });
 
                 if (updateSecret.Result.Data == null)
                 {

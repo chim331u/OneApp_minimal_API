@@ -8,16 +8,18 @@ namespace OneApp_minimalApi.Services
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<IUtilityServices> _logger;
-        private readonly ILocalVaultService _localVaultService;
+        private readonly IHashicorpVaultService _vaultService;
         private const string MasterKeyCryptoName = "CRYPTO:MASTERKEY";
-
+        private const string VaultPath = "Crypto";
+        private string VaultMountPoint;
         public UtilityServices(IConfiguration configuration, ILogger<IUtilityServices> logger,
-            ILocalVaultService localVaultService)
+            IHashicorpVaultService vaultService)
         {
             _logger = logger;
-            _localVaultService = localVaultService;
+            _vaultService = vaultService;
             // Initialize the configuration
             _configuration = configuration;
+            VaultMountPoint = _configuration["VaultMountPoint"];
         }
 
         /// <summary>
@@ -44,22 +46,7 @@ namespace OneApp_minimalApi.Services
             byte[] iv = new byte[16];
             byte[] array;
 
-            // // key using the secret key from the configuration.
-            // string key =string.Empty;
-            //
-            // if (_configuration.GetSection("IsDev").Value != null)
-            // {
-            //     //for debug only
-            //     key = _configuration["CRYPTO:MasterKey"];
-            //
-            // }
-            // else
-            // {
-            //     key = Environment.GetEnvironmentVariable("CRYPTO_MASTERKEY");
-            // }
-            // //string key = "CryptoKey";
-
-            var result = await _localVaultService.GetSecret(MasterKeyCryptoName);
+            var result = await _vaultService.GetSecret(MasterKeyCryptoName, VaultPath, VaultMountPoint);
 
             string key = result.Data.Value;
 
@@ -136,7 +123,7 @@ namespace OneApp_minimalApi.Services
             //     key = Environment.GetEnvironmentVariable("CRYPTO_MASTERKEY");
             // }
 
-            var result = await _localVaultService.GetSecret(MasterKeyCryptoName);
+            var result = await _vaultService.GetSecret(MasterKeyCryptoName, VaultPath, VaultMountPoint);
 
             string key = result.Data.Value;
 
