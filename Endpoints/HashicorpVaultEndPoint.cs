@@ -31,7 +31,7 @@ public static class HashicorpVaultEndPoint
         {
             var result = await _service.GetListSecretsKeys( path, mountPoint);
         
-            if (result == null)
+            if (result.Data == null)
             {
                 return Results.NotFound(result);
             }

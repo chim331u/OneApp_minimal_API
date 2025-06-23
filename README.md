@@ -32,5 +32,6 @@ dotnet user-secrets set "MASTERKEY_SECRET" "12345" (dev)
 ... -e "MASTERKEY_SECRET=12345" (prod)
 
 Add to local db:
-JWT:SECRET = 12345
-CRYPTO:MASTERKEY = 12345
+Tokens/JWT:SECRET = 12345
+Crypto/CRYPTO:MASTERKEY = 12345
+settings type list...
