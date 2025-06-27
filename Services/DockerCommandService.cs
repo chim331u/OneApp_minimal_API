@@ -89,7 +89,7 @@ public class DockerCommandService : IDockerCommandService
     }
 
     /// <summary>
-    /// Retrieves the list of Docker images in json format.
+    /// Retrieves the list of Docker images in JSON format.
     /// </summary>
     /// <returns>A <see cref="DockerCommandResponse{T}"/> containing the command to list docker images.</returns>
     public async Task<DockerCommandResponse<string>> GetImageListCommand()
@@ -241,8 +241,27 @@ public class DockerCommandService : IDockerCommandService
 
         var imageName = $"{dockerConfig.AppName}_image:latest";
 
+        var parametersList = await _context.DockerParameters.Include(x => x.DockerConfig)
+            .Where(x => x.DockerConfig.Id == dockerConfig.Id && x.IsActive).ToListAsync();
+
+        var parametersCommandString = string.Empty;
+        if(parametersList.Count != 0)
+        {
+            foreach (var parameters in parametersList)
+            {
+                if (parameters.CidData)
+                {
+                    parametersCommandString += $"-e {parameters.DockerParameter}={_vaultService.GetSecret(parameters.ParameterValue, "DockerParameters","secrets").Result.Data.Value} ";
+                }
+                else
+                {
+                    parametersCommandString += $"-e {parameters.DockerParameter}={parameters.ParameterValue} ";
+                }
+            }
+        }
+        
         string dockerCommand =
-            $"docker run --restart always --name {dockerConfig.AppName} -d -p " +
+            $"docker run --restart always --name {dockerConfig.AppName} {parametersCommandString} -d -p " + 
             dockerConfig.PortAddress + folderCommand1 + folderCommand2 + folderCommand3 + " " + imageName + "";
 
         _logger.LogInformation($"Run command= {dockerCommand}");
@@ -462,7 +481,7 @@ public class DockerCommandService : IDockerCommandService
     }
 
     /// <summary>
-    /// Upload docker file to NAS.  
+    /// Upload a docker file to NAS.  
     /// </summary>
     /// <param name="deployId"></param>
     /// <returns>DockerCommand Response</returns>
@@ -719,7 +738,7 @@ public class DockerCommandService : IDockerCommandService
         var buildCommand = await GetBuildCommand(deployId);
         if (!buildCommand.IsSuccess)
         {
-            _logger.LogWarning($"Unable to retrive build command");
+            _logger.LogWarning($"Unable to retrieve build command");
             return new DockerCommandResponse<string>("Unable to retrieve build command",
                 "BuildCommand", false);
         }

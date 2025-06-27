@@ -52,6 +52,10 @@ namespace OneApp_minimalApi.AppContext
         
         public  DbSet<TokenInfo> TokenInfo { get; set; }
         
+        public DbSet<DockerParameters> DockerParameters { get; set; }
+        
+        public DbSet<DockerFolderMounts> DockerFolderMounts { get; set; }
+        
         /// <summary>
         /// Configures the model and relationships for the database context.
         /// </summary>
