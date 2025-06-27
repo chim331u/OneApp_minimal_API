@@ -19,6 +19,7 @@ namespace OneApp_minimalApi.Extensions
     /// </summary>
     public static class ServiceExtensions
     {
+
         /// <summary>
         /// Adds application-specific services to the specified <see cref="IHostApplicationBuilder"/>.
         /// </summary>
@@ -35,6 +36,21 @@ namespace OneApp_minimalApi.Extensions
                 configure.UseSqlite(builder.Configuration.GetConnectionString("sqliteConnection"));
             });
 
+            // Register services
+            builder.Services.AddScoped<IFilesDetailService, FilesDetailService>();
+            builder.Services.AddScoped<IConfigsService, ConfigsService>();
+            builder.Services.AddScoped<IUtilityServices, UtilityServices>();
+            builder.Services.AddScoped<IHangFireJobService, HangFireJobService>();
+            builder.Services.AddScoped<IMachineLearningService, MachineLearningService>();
+            builder.Services.AddScoped<IDDService, DDService>();
+            builder.Services.AddScoped<IDockerConfigsService, DockerConfigsService>();
+            builder.Services.AddScoped<IDeployDetailService, DeployDetailService>();
+            builder.Services.AddScoped<IDockerCommandService, DockerCommandService>();
+            builder.Services.AddScoped<ISettingsService, SettingsService>();
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IIdentityService, IdentityService>();
+            builder.Services.AddScoped<IHashicorpVaultService, HashiCorpVaultService>();
+            
             // Adding validators from the current assembly
             builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
@@ -44,21 +60,24 @@ namespace OneApp_minimalApi.Extensions
                 .AddDefaultTokenProviders();
 
             // Create a symmetric security key using the secret key from the configuration.
-            SymmetricSecurityKey authSigningKey;
+            // SymmetricSecurityKey authSigningKey;
+            //
+            // if (builder.Configuration.GetSection("IsDev").Value != null)
+            // {
+            //     //for debug only
+            //     // authSigningKey = new SymmetricSecurityKey
+            //     //     (Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]));
 
-            if (builder.Configuration.GetSection("IsDev").Value != null)
-            {
-                //for debug only
-                authSigningKey = new SymmetricSecurityKey
-                    (Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]));
-            
-            }
-            else
-            {
-                authSigningKey = new SymmetricSecurityKey
-                    (Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")));
-            }
-            
+            // SymmetricSecurityKey authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_vaultService
+            //     .GetSecret("JWT:Secret", "Token", builder.Configuration["VaultMountPoint"]).Result.Data.Value));
+
+            // }
+            // else
+            // {
+            //     authSigningKey = new SymmetricSecurityKey
+            //         (Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")));
+            // }
+
             builder.Services.AddAuthentication(options =>
                     {
                         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -76,27 +95,14 @@ namespace OneApp_minimalApi.Extensions
                             ValidateAudience = true,
                             ValidAudience = builder.Configuration["JWT:ValidAudience"],
                             ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
-                            ClockSkew = TimeSpan.Zero,
-                            IssuerSigningKey =authSigningKey
+                            ClockSkew = TimeSpan.Zero
+                            // , IssuerSigningKey = authSigningKey
                         };
                     }
                 );
 
 
-            // Register services
-            builder.Services.AddScoped<IFilesDetailService, FilesDetailService>();
-            builder.Services.AddScoped<IConfigsService, ConfigsService>();
-            builder.Services.AddScoped<IUtilityServices, UtilityServices>();
-            builder.Services.AddScoped<IHangFireJobService, HangFireJobService>();
-            builder.Services.AddScoped<IMachineLearningService, MachineLearningService>();
-            builder.Services.AddScoped<IDDService, DDService>();
-            builder.Services.AddScoped<IDockerConfigsService, DockerConfigsService>();
-            builder.Services.AddScoped<IDeployDetailService, DeployDetailService>();
-            builder.Services.AddScoped<IDockerCommandService, DockerCommandService>();
-            builder.Services.AddScoped<ISettingsService, SettingsService>();
-            builder.Services.AddScoped<ITokenService, TokenService>();
-            builder.Services.AddScoped<IIdentityService, IdentityService>();
-            builder.Services.AddScoped<IHashicorpVaultService, HashiCorpVaultService>();
+
 
 
             // Register exception handler
