@@ -17,7 +17,9 @@ public class DockerConfigsService : IDockerConfigsService
     private readonly ILogger<FilesDetailService> _logger; // Logger for logging information and errors
     private readonly IUtilityServices _utilityServices; // Utility services for encryption and other utilities
     private readonly IHashicorpVaultService _hashicorpVaultService;
+    private readonly IConfiguration _configsService;
     private const string DockerParameters = "DockerParameters";
+    private string VaultMountPoint = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DockerConfigsService"/> class.
@@ -25,12 +27,14 @@ public class DockerConfigsService : IDockerConfigsService
     /// <param name="context">The database context.</param>
     /// <param name="logger">The logger for logging information and errors.</param>
     /// <param name="utilityServices">The utility services for encryption and other utilities.</param>
-    public DockerConfigsService(ApplicationContext context, ILogger<FilesDetailService> logger, IUtilityServices utilityServices, IHashicorpVaultService hashicorpVaultService)
+    public DockerConfigsService(ApplicationContext context, ILogger<FilesDetailService> logger, IUtilityServices utilityServices, IHashicorpVaultService hashicorpVaultService, IConfiguration configsService)
     {
         _context = context;
         _logger = logger;
         _utilityServices = utilityServices;
         _hashicorpVaultService = hashicorpVaultService;
+        _configsService = configsService;
+        VaultMountPoint= _configsService["VaultMountPoint"] ?? "secrets";
     }
 
     /// <summary>
@@ -302,7 +306,7 @@ public class DockerConfigsService : IDockerConfigsService
                 var result = await _hashicorpVaultService.CreateSecret(new SecretRequestDTO()
                 {
                     Key = vaultGuid, Value = dockerParameterDto.ParameterValue,
-                    MountVolume = "secrets", Path = DockerParameters
+                    MountVolume = VaultMountPoint, Path = DockerParameters
                 });
                 if (result.Data == null)
                 {
@@ -351,7 +355,7 @@ public class DockerConfigsService : IDockerConfigsService
                 var result = await _hashicorpVaultService.UpdateSecret(new SecretRequestDTO()
                 {
                     Key = existingItem.ParameterValue, Value = dockerParameterDto.ParameterValue,
-                    MountVolume = "secrets", Path = DockerParameters
+                    MountVolume = VaultMountPoint, Path = DockerParameters
                 });
                 if (result.Data == null)
                 {
