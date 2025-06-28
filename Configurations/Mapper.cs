@@ -2,7 +2,9 @@ using OneApp_minimalApi.Contracts.Configs;
 using OneApp_minimalApi.Contracts.DockerDeployer;
 using OneApp_minimalApi.Contracts.Enum;
 using OneApp_minimalApi.Contracts.FilesDetail;
+using OneApp_minimalApi.Contracts.Vault;
 using OneApp_minimalApi.Models;
+using OneApp_minimalApi.Models.Vault;
 
 namespace OneApp_minimalApi.Configurations;
 
@@ -207,8 +209,6 @@ public static class Mapper
             Duration = deployDetailDto.Duration
         };
     }
-
-
     public static Settings FromSettingDtoToSettingsModel(SettingsDto settingsDto)
     {
         return new Settings()
@@ -223,7 +223,6 @@ public static class Mapper
             Note = settingsDto.Note, Type = settingsDto.Type
         };
     }
-
     public static SettingsDto FromSettingsToDto(Settings settings)
     {
         return new SettingsDto()
@@ -235,12 +234,32 @@ public static class Mapper
         };
     }
 
-
     public static SettingListDto FromSettingModelToSettingListDto(Settings settings)
     {
         return new SettingListDto()
         {
             Id = settings.Id, Alias = settings.Alias, Type = settings.Type
+        };
+    }
+
+    public static LocalSecret LocalSecretRequestDtoToModel(SecretRequestDTO secretDto)
+    {
+        return new LocalSecret()
+            {Key = secretDto.Key, Value = secretDto.Value};
+    }
+
+    public static SecretResponseDTO FromModelToSecretResponseDto(LocalSecret secret)
+    {
+        return new SecretResponseDTO()
+        {
+            Id = secret.Id, Key = secret.Key, Value = secret.Value
+        };
+    }
+    public static SecretsListDto FromModelToSecretListDto(LocalSecret secret)
+    {
+        return new SecretsListDto()
+        {
+            Id = secret.Id, Key = secret.Key
         };
     }
 }

@@ -4,28 +4,22 @@ namespace OneApp_minimalApi.Models
 {
     public class DockerConfig : BaseEntity
     {
-        [Key]
-        public int Id { get; set; }
+        [Key] public int Id { get; set; }
 
-        [Required]
-        public string Name { get; set; }
+        [Required] public string Name { get; set; }
 
         public string? Description { get; set; }
 
         // [Required]
         // public string DockerCommand { get; set; }
 
-        [Required]
-        public string SolutionRepository { get; set; }
+        [Required] public string SolutionRepository { get; set; }
 
-        [Required]
-        public string AppEntryName { get; set; }
-        [Required]
-        public string AppName { get; set; }
+        [Required] public string AppEntryName { get; set; }
+        [Required] public string AppName { get; set; }
 
-        [Required]
-        public string DockerFileName { get; set; }
-        
+        [Required] public string DockerFileName { get; set; }
+
         // [Required]
         // public string Host { get; set; }
 
@@ -35,16 +29,13 @@ namespace OneApp_minimalApi.Models
         // [Required]
         // public string Password { get; set; }
 
-        [Required]
-        public string PortAddress { get; set; }
+        [Required] public string PortAddress { get; set; }
 
-        [Required]
-        public string NasLocalFolderPath { get; set; }
+        [Required] public string NasLocalFolderPath { get; set; }
 
         public string? SolutionFolder { get; set; }
 
-        [Required]
-        public string SkdVersion { get; set; }
+        [Required] public string SkdVersion { get; set; }
 
         public string? FolderFrom1 { get; set; }
         public string? FolderContainer1 { get; set; }
@@ -58,14 +49,16 @@ namespace OneApp_minimalApi.Models
         public string? Icon { get; set; }
         public string? BuildProject { get; set; }
         public string? Branch { get; set; }
-        
+
         public string? ImageVersion { get; set; }
         public bool noCache { get; set; } = false;
-        
+
         public Settings? NasSettings { get; set; }
 
         public Settings? DockerRepositorySettings { get; set; }
 
         public ICollection<DeployDetail>? DeployDetails { get; set; }
+        public ICollection<DockerParameters?> DockerParameters { get; } // Collection navigation containing dependents
+        public ICollection<DockerFolderMounts>? DockerFolderMounts { get; }
     }
 }

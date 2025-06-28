@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using HtmlAgilityPack;
 using OneApp_minimalApi.AppContext;
 using OneApp_minimalApi.Contracts.DD;
+using OneApp_minimalApi.Contracts.Enum;
 using OneApp_minimalApi.Interfaces;
 using OneApp_minimalApi.Models;
 
@@ -18,6 +19,7 @@ public class DDService : IDDService
     private readonly ILogger<DDService> _logger; // Logger for logging information and errors
     private readonly IConfiguration _config; // Configuration settings
     private readonly IUtilityServices _utility; // Utility class for common operations
+    private readonly IHashicorpVaultService _vaultService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DDService"/> class.
@@ -26,12 +28,13 @@ public class DDService : IDDService
     /// <param name="logger">The logger for logging information and errors.</param>
     /// <param name="config">The configuration settings.</param>
     /// <param name="utility">The utility service for common operations.</param>
-    public DDService(ApplicationContext context, ILogger<DDService> logger, IConfiguration config, IUtilityServices utility)
+    public DDService(ApplicationContext context, ILogger<DDService> logger, IConfiguration config, IUtilityServices utility, IHashicorpVaultService vaultService)
     {
         _utility = utility;
         _context = context;
         _logger = logger;
         _config = config;
+        _vaultService = vaultService;
     }
 
     /// <summary>
@@ -329,12 +332,13 @@ public class DDService : IDDService
     /// <returns>The page content as a string.</returns>
     private async Task<string> LoginDD(string threadLink)
     {
-        var _setting = await _context.DDSettings.FirstOrDefaultAsync(x => x.IsActive);
+        //var _setting = await _context.DDSettings.FirstOrDefaultAsync(x => x.IsActive);
+        var _setting = await _context.DDSettings.Where(x=>x.Type== SettingType.DD_PROFILE).FirstOrDefaultAsync(x => x.IsActive);
 
         if (_setting != null)
         {
              var _ddUserName = _setting.UserName;
-            // var _ddPassword = await _utility.DecryptString(_setting.Password);
+             var _ddPassword = _vaultService.GetSecret(_setting.Password, _setting.Type.ToString(), _config["VaultMountPoint"]).Result.Data.Value;
 
             var clientHandler = new HttpClientHandler
             {
@@ -363,7 +367,8 @@ public class DDService : IDDService
                 var loginData = new Dictionary<string, string>
                 {
                     { "username", _ddUserName }, // Nome utente
-                    { "password", await _utility.DecryptString(_setting.Password) }, // Password
+                    //{ "password", await _utility.DecryptString(_setting.Password) }, // Password
+                    { "password", _ddPassword }, // Password
                     { "redirect", "index.php" },
                     { "login", "Login" } // Nome del pulsante di login (può variare)
                 };
@@ -704,105 +709,36 @@ public class DDService : IDDService
         }
     }
 
-    /// <summary>
-    /// Adds a new setting to the database.
-    /// </summary>
-    /// <param name="setting">The setting to add.</param>
-    /// <returns>The added setting as a <see cref="Settings"/> object.</returns>
-    public async Task<Settings> AddSetting(Settings setting)
-    {
-        try
-        {
-            setting.CreatedDate = DateTime.Now;
-            setting.IsActive = true;
-            setting.Password = await _utility.EncryptString(setting.Password);
-            var settingAdded = await _context.DDSettings.AddAsync(setting);
-            await _context.SaveChangesAsync();
-
-            return settingAdded.Entity;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex.Message);
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Updates an existing setting in the database.
-    /// </summary>
-    /// <param name="setting">The setting to update.</param>
-    /// <returns>The updated setting as a <see cref="Settings"/> object.</returns>
-    public async Task<Settings> UpdateSetting(Settings setting)
-    {
-        try
-        {
-            setting.LastUpdatedDate = DateTime.Now;
-            var settingUpdated = _context.DDSettings.Update(setting);
-            await _context.SaveChangesAsync();
-
-            return settingUpdated.Entity;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex.Message);
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Marks a setting as inactive in the database.
-    /// </summary>
-    /// <param name="setting">The setting to delete.</param>
-    /// <returns>The deleted setting as a <see cref="Settings"/> object.</returns>
-    public async Task<Settings> DeleteSetting(Settings setting)
-    {
-        try
-        {
-            setting.IsActive = false;
-            setting.LastUpdatedDate = DateTime.Now;
-            var settingDeleted = _context.DDSettings.Update(setting);
-            await _context.SaveChangesAsync();
-
-            return settingDeleted.Entity;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex.Message);
-        }
-
-        return null;
-    }
     
-    /// <summary>
-    /// Adds a new DD setting.
-    /// </summary>
-    /// <param name="newSetting">The new setting to add.</param>
-    /// <returns>The added setting as a <see cref="SettingDto"/> object.</returns>
-    public async Task<SettingDto> AddSetting(SettingDto newSetting)
-    {
-        try
-        {
-            var setting = new Settings
-            {
-                CreatedDate = DateTime.Now,
-                IsActive = true,
-                LastUpdatedDate = DateTime.Now,
-                UserName = newSetting.Dd_User,
-                Password = await _utility.EncryptString(newSetting.Dd_Password)
-            };
-           
-                await _context.DDSettings.AddAsync(setting);
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation($"Added new setting");
-            return newSetting;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex.Message);
-            return null!;
-        }
-    }
+    // /// <summary>
+    // /// Adds a new DD setting.
+    // /// </summary>
+    // /// <param name="newSetting">The new setting to add.</param>
+    // /// <returns>The added setting as a <see cref="SettingDto"/> object.</returns>
+    // public async Task<DDSettingDto> AddSetting(DDSettingDto newSetting)
+    // {
+    //     try
+    //     {
+    //         var setting = new Settings
+    //         {
+    //             CreatedDate = DateTime.Now,
+    //             IsActive = true,
+    //             LastUpdatedDate = DateTime.Now,
+    //             UserName = newSetting.Dd_User,
+    //             Password = await _utility.EncryptString(newSetting.Dd_Password)
+    //         };
+    //        
+    //             await _context.DDSettings.AddAsync(setting);
+    //
+    //         await _context.SaveChangesAsync();
+    //
+    //         _logger.LogInformation($"Added new setting");
+    //         return newSetting;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError(ex.Message);
+    //         return null!;
+    //     }
+    // }
 }

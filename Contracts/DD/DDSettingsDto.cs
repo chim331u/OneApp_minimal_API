@@ -3,7 +3,7 @@ namespace OneApp_minimalApi.Contracts.DD;
 /// <summary>
 /// Represents a Data Transfer Object (DTO) for settings.
 /// </summary>
-public class SettingDto  
+public class DDSettingDto  
 {
     /// <summary>
     /// Gets or sets the unique identifier for the setting.

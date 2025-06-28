@@ -19,6 +19,10 @@ public class DockerCommandService : IDockerCommandService
     private readonly ApplicationContext _context; // Database context
     private readonly ILogger<DockerCommandService> _logger; // Logger for logging information and errors
     private readonly IUtilityServices _utilityServices; // Utility services for encryption and other utilities
+    private readonly IHashicorpVaultService _vaultService;
+    private readonly IConfiguration _configuration;
+    // private const string VaultPath = "DockerRepo";
+    private string VaultMountPoint;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DockerCommandService"/> class.
@@ -27,11 +31,15 @@ public class DockerCommandService : IDockerCommandService
     /// <param name="logger">The logger for logging information and errors.</param>
     /// <param name="utilityServices">The utility services for encryption and other utilities.</param>
     public DockerCommandService(ApplicationContext context, ILogger<DockerCommandService> logger,
-        IUtilityServices utilityServices)
+        IUtilityServices utilityServices, IHashicorpVaultService vaultService, IConfiguration configuration)
     {
         _context = context;
         _logger = logger;
         _utilityServices = utilityServices;
+        _vaultService = vaultService;
+        _configuration = configuration;
+        
+        VaultMountPoint = _configuration["VaultMountPoint"];
     }
 
     #region Commands
@@ -81,7 +89,7 @@ public class DockerCommandService : IDockerCommandService
     }
 
     /// <summary>
-    /// Retrieves the list of Docker images in json format.
+    /// Retrieves the list of Docker images in JSON format.
     /// </summary>
     /// <returns>A <see cref="DockerCommandResponse{T}"/> containing the command to list docker images.</returns>
     public async Task<DockerCommandResponse<string>> GetImageListCommand()
@@ -141,7 +149,8 @@ public class DockerCommandService : IDockerCommandService
 
         var myDockerRepoUsername = dockerConfig.DockerRepositorySettings.UserName;
         var myDockerRepoPassword =
-            await _utilityServices.DecryptString(dockerConfig.DockerRepositorySettings.Password);
+            _vaultService.GetSecret(dockerConfig.DockerRepositorySettings.Password, dockerConfig.NasSettings.Type.ToString(), VaultMountPoint).Result.Data.Value;
+            //await _utilityServices.DecryptString(dockerConfig.DockerRepositorySettings.Password);
 
         var dockingRegistryLogin = $"docker login -u {myDockerRepoUsername} -p {myDockerRepoPassword} docker.io";
 
@@ -232,8 +241,27 @@ public class DockerCommandService : IDockerCommandService
 
         var imageName = $"{dockerConfig.AppName}_image:latest";
 
+        var parametersList = await _context.DockerParameters.Include(x => x.DockerConfig)
+            .Where(x => x.DockerConfig.Id == dockerConfig.Id && x.IsActive).ToListAsync();
+
+        var parametersCommandString = string.Empty;
+        if(parametersList.Count != 0)
+        {
+            foreach (var parameters in parametersList)
+            {
+                if (parameters.CidData)
+                {
+                    parametersCommandString += $"-e {parameters.DockerParameter}={_vaultService.GetSecret(parameters.ParameterValue, "DockerParameters","secrets").Result.Data.Value} ";
+                }
+                else
+                {
+                    parametersCommandString += $"-e {parameters.DockerParameter}={parameters.ParameterValue} ";
+                }
+            }
+        }
+        
         string dockerCommand =
-            $"docker run --restart always --name {dockerConfig.AppName} -d -p " +
+            $"docker run --restart always --name {dockerConfig.AppName} {parametersCommandString} -d -p " + 
             dockerConfig.PortAddress + folderCommand1 + folderCommand2 + folderCommand3 + " " + imageName + "";
 
         _logger.LogInformation($"Run command= {dockerCommand}");
@@ -265,7 +293,8 @@ public class DockerCommandService : IDockerCommandService
             }
 
             using var client = new SshClient(dockerConfig.NasSettings.Address, dockerConfig.NasSettings.UserName,
-                await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
+                 _vaultService.GetSecret(dockerConfig.NasSettings.Password, dockerConfig.NasSettings.Type.ToString(), VaultMountPoint).Result.Data.Value);
+                //await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
             client.Connect();
 
             _logger.LogInformation($"SSH Command '{command}' is sent...");
@@ -452,7 +481,7 @@ public class DockerCommandService : IDockerCommandService
     }
 
     /// <summary>
-    /// Upload docker file to NAS.  
+    /// Upload a docker file to NAS.  
     /// </summary>
     /// <param name="deployId"></param>
     /// <returns>DockerCommand Response</returns>
@@ -474,7 +503,8 @@ public class DockerCommandService : IDockerCommandService
             if (dockerConfig.NasSettings != null)
             {
                 using var client = new SftpClient(dockerConfig.NasSettings.Address, dockerConfig.NasSettings.UserName,
-                    await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
+                    _vaultService.GetSecret(dockerConfig.NasSettings.Password, dockerConfig.NasSettings.Type.ToString(), VaultMountPoint).Result.Data.Value);
+                    //await _utilityServices.DecryptString(dockerConfig.NasSettings.Password));
                 client.Connect();
                 _logger.LogInformation($"Client connected to NAS");
 
@@ -708,7 +738,7 @@ public class DockerCommandService : IDockerCommandService
         var buildCommand = await GetBuildCommand(deployId);
         if (!buildCommand.IsSuccess)
         {
-            _logger.LogWarning($"Unable to retrive build command");
+            _logger.LogWarning($"Unable to retrieve build command");
             return new DockerCommandResponse<string>("Unable to retrieve build command",
                 "BuildCommand", false);
         }
@@ -816,4 +846,49 @@ public class DockerCommandService : IDockerCommandService
         _logger.LogInformation($"Image Pushed : {pushCommand.Data} ");
         return new DockerCommandResponse<string>(pushResult.Data, "PushImage", true);
     }
+    
+    // public async Task<List<DownloadFile>> AddEd2kLink(string ed2kLink)
+    // {
+    //     var param = new Dictionary<string, string>();
+    //     param.Add("Submit", "Download link");
+    //     param.Add("ed2klink", ed2kLink);
+    //     param.Add("selectcat", "all");
+    //
+    //     var result = await _networkHelperServices.PostRequest(_footer, param);
+    //
+    //     if (!string.IsNullOrEmpty(result))
+    //     {
+    //         return ParseDownloading(result);
+    //     }
+    //
+    //     return null;
+    //
+    // }
+    //
+    //
+    // public async Task<string> PostRequest(string page, Dictionary<string, string> parameters )
+    // {
+    //     try
+    //     {
+    //         var url = _utilityServices.ApiUrl + page;
+    //         using var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = new FormUrlEncodedContent(parameters) };
+    //         var result = await httpClient.SendAsync(req);
+    //
+    //         if (result.IsSuccessStatusCode)
+    //         {
+    //             return await result.Content.ReadAsStringAsync();
+    //         }
+    //
+    //         _logger.LogWarning($"Post command response: {result.StatusCode}");
+    //         return string.Empty;
+    //
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError($"Error post command: {ex.Message}");
+    //         return string.Empty;
+    //
+    //     }
+    //
+    // }
 }

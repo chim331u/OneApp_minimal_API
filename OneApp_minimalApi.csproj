@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -6,7 +6,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    </PropertyGroup>
+      <UserSecretsId>cc34baca-a81a-4b84-909b-165c58ca71a0</UserSecretsId>
+  </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <NoWarn>1701;1702;1591;1587;1572;1573</NoWarn>
@@ -21,6 +22,8 @@
         <PackageReference Include="Hangfire.AspNetCore" Version="1.8.18" />
         <PackageReference Include="Hangfire.InMemory" Version="1.0.0" />
         <PackageReference Include="HtmlAgilityPack" Version="1.12.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.15" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.15" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.11" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.15" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.15">
@@ -32,7 +35,6 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.8.0" />
         <PackageReference Include="Microsoft.ML" Version="4.0.2" />
         <PackageReference Include="Serilog" Version="4.2.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
@@ -40,6 +42,7 @@
         <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
         <PackageReference Include="SSH.NET" Version="2024.2.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+        <PackageReference Include="VaultSharp" Version="1.17.5.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -49,6 +52,12 @@
       <Folder Include="Temp\FCLog\" />
       <Folder Include="Temp\OneAppLog\" />
       <Folder Include="Temp\Orig\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Endpoints\LocalVaultEndpoint.cs" />
+      <Compile Remove="Interfaces\ILocalVaultService.cs" />
+      <Compile Remove="Services\LocalVaultService.cs" />
     </ItemGroup>
 
 </Project>

@@ -49,7 +49,7 @@ public static class ActionsEndpoint
         /// <summary>
         /// Endpoint to force categorization of files.
         /// </summary>
-        app.MapPost("/ForceCategory", async (IFilesDetailService filesDetailService) =>
+        app.MapGet("/ForceCategory", async (IFilesDetailService filesDetailService) =>
         {
             string forceCategoryResult = await filesDetailService.ForceCategory();
             return Results.Ok(forceCategoryResult);
@@ -58,7 +58,7 @@ public static class ActionsEndpoint
         /// <summary>
         /// Endpoint to train and save a machine learning model.
         /// </summary>
-        app.MapPost("/TrainModel", async (IMachineLearningService machineLearningService) =>
+        app.MapGet("/TrainModel", async (IMachineLearningService machineLearningService) =>
         {
             string trainModelResult = machineLearningService.TrainAndSaveModel();
             return Results.Ok(trainModelResult);

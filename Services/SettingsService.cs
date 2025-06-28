@@ -3,6 +3,8 @@ using OneApp_minimalApi.AppContext;
 using OneApp_minimalApi.Configurations;
 using OneApp_minimalApi.Contracts;
 using OneApp_minimalApi.Contracts.Configs;
+using OneApp_minimalApi.Contracts.DockerDeployer;
+using OneApp_minimalApi.Contracts.Vault;
 using OneApp_minimalApi.Interfaces;
 
 namespace OneApp_minimalApi.Services;
@@ -13,7 +15,11 @@ public class SettingsService : ISettingsService
     private readonly ILogger<SettingsService> _logger; // Logger for logging information and errors
     private readonly IConfiguration _config;
     private readonly IUtilityServices _utilityServices;
+    private readonly IHashicorpVaultService _vaultService;
 
+    private string VaultMountPoint;
+
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsService"/> class.
     /// </summary>
@@ -21,12 +27,15 @@ public class SettingsService : ISettingsService
     /// <param name="logger">The logger for logging information and errors.</param>
     /// <param name="config">The application configuration.</param>
     public SettingsService(ApplicationContext context, ILogger<SettingsService> logger, IConfiguration config,
-        IUtilityServices utilityServices)
+        IUtilityServices utilityServices, IHashicorpVaultService vaultService)
     {
         _context = context;
         _logger = logger;
         _config = config;
         _utilityServices = utilityServices;
+        _vaultService = vaultService;
+        
+        VaultMountPoint = _config["VaultMountPoint"];
     }
 
 
@@ -46,6 +55,7 @@ public class SettingsService : ISettingsService
             return null!;
         }
     }
+    
     public async Task<ApiResponse<IEnumerable<SettingsDto>>> GetSettingsFullList()
     {
         try
@@ -91,8 +101,18 @@ public class SettingsService : ISettingsService
             setting.CreatedDate = DateTime.Now;
             setting.IsActive = true;
             setting.LastUpdatedDate = DateTime.Now;
-            setting.Password = await _utilityServices.EncryptString(settingsDto.Password);
+            setting.Password = Guid.NewGuid().ToString();
 
+            var secreteStored =
+            _vaultService.CreateSecret(new SecretRequestDTO()
+                {Key = setting.Password, Value = settingsDto.Password, Path = settingsDto.Type.ToString(), MountVolume = VaultMountPoint});
+
+            if (secreteStored.Result.Data == null)
+            {
+                _logger.LogError($"Unable to save new secret: {secreteStored}");
+                return new ApiResponse<SettingsDto>(null, secreteStored.Result.Message);
+            }
+            
             await _context.DDSettings.AddAsync(setting);
             await _context.SaveChangesAsync();
 
@@ -121,10 +141,23 @@ public class SettingsService : ISettingsService
             existingItem.LastUpdatedDate = DateTime.Now;
 
             if (!string.IsNullOrEmpty(settings.User)) existingItem.UserName = settings.User;
-
+            
             if (!settings.Password.Equals(existingItem.Password))
             {
-                existingItem.Password = await _utilityServices.EncryptString(settings.Password);    
+                //password is changed:
+                
+                var updateSecret =
+                    _vaultService.UpdateSecret(new SecretRequestDTO()
+                    {
+                        Value = settings.Password, Key = existingItem.Password, Path = existingItem.Type.ToString(), MountVolume = VaultMountPoint
+                    });
+
+                if (updateSecret.Result.Data == null)
+                {
+                    _logger.LogError($"Unable to save new secret: {updateSecret.Result.Message}");
+                    return new ApiResponse<SettingsDto>(null!, $"Unable to save new secret: {updateSecret.Result.Message}");
+                }
+                
             }
             
             if (!string.IsNullOrEmpty(settings.Alias)) existingItem.Alias = settings.Alias;
@@ -150,6 +183,13 @@ public class SettingsService : ISettingsService
         }
     }
 
+    private bool HistoryPasswordAdd(string password)
+    {
+        // Check if the password exists in the history
+        // This is a placeholder for actual implementation
+        return false;
+    }
+    
     public async Task<ApiResponse<bool>> DeleteSetting(int id)
     {
         try

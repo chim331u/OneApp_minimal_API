@@ -1,5 +1,6 @@
 using OneApp_minimalApi.Contracts.DockerDeployer;
 using OneApp_minimalApi.Interfaces;
+
 // ReSharper disable InconsistentNaming
 
 namespace OneApp_minimalApi.Endpoints;
@@ -44,11 +45,12 @@ public static class DockerConfigsEndpoint
         /// </summary>
         /// <param name="dockerConfigsDto">The Docker configuration data to add.</param>
         /// <param name="_dockerConfigsService">The service to process the request.</param>
-        app.MapPost("/AddDockerConfig", async (DockerConfigsDto dockerConfigsDto, IDockerConfigsService _dockerConfigsService) =>
-        {
-            var result = await _dockerConfigsService.AddDockerConfig(dockerConfigsDto);
-            return Results.Created($"/GetDockerConfig/{result!.Id}", result);
-        });
+        app.MapPost("/AddDockerConfig",
+            async (DockerConfigsDto dockerConfigsDto, IDockerConfigsService _dockerConfigsService) =>
+            {
+                var result = await _dockerConfigsService.AddDockerConfig(dockerConfigsDto);
+                return Results.Created($"/GetDockerConfig/{result!.Id}", result);
+            });
 
         /// <summary>
         /// Endpoint to update an existing Docker configuration.
@@ -56,11 +58,12 @@ public static class DockerConfigsEndpoint
         /// <param name="id">The unique identifier of the Docker configuration to update.</param>
         /// <param name="dockerConfigsDto">The updated Docker configuration data.</param>
         /// <param name="_dockerConfigsService">The service to process the request.</param>
-        app.MapPut("/UpdateDockerConfig/{id:int}", async (int id, DockerConfigsDto dockerConfigsDto, IDockerConfigsService _dockerConfigsService) =>
-        {
-            var result = await _dockerConfigsService.UpdateDockerConfig(id, dockerConfigsDto);
-            return result != null ? Results.Ok(result) : Results.NotFound();
-        });
+        app.MapPut("/UpdateDockerConfig/{id:int}",
+            async (int id, DockerConfigsDto dockerConfigsDto, IDockerConfigsService _dockerConfigsService) =>
+            {
+                var result = await _dockerConfigsService.UpdateDockerConfig(id, dockerConfigsDto);
+                return result != null ? Results.Ok(result) : Results.NotFound();
+            });
 
         /// <summary>
         /// Endpoint to delete a Docker configuration by its ID.
@@ -73,6 +76,70 @@ public static class DockerConfigsEndpoint
             return result ? Results.NoContent() : Results.NotFound();
         });
 
+
+        app.MapGet("/GetDockerParameterList/{id:int}",
+            async (int id, IDockerConfigsService _dockerConfigsService) =>
+            {
+                var result = await _dockerConfigsService.GetDockerParametersList(id);
+                return Results.Ok(result);
+            });
+
+        app.MapGet("/GetDockerParameter/{id:int}", async (int id, IDockerConfigsService _dockerConfigsService) =>
+        {
+            var result = await _dockerConfigsService.GetDockerParameter(id);
+            return result != null ? Results.Ok(result) : Results.NotFound();
+        });
+
+        app.MapPost("/AddDockerParameter",
+            async (DockerParameterDto dockerParamDto, IDockerConfigsService _dockerConfigsService) =>
+            {
+                var result = await _dockerConfigsService.AddDockerParameter(dockerParamDto);
+                return Results.Created($"/GetDockerParameter/{result!.Id}", result);
+            });
+
+        app.MapPut("/UpdateDockerParameter/{id:int}",
+            async (int id, DockerParameterDto dockerParamDto, IDockerConfigsService _dockerConfigsService) =>
+            {
+                var result = await _dockerConfigsService.UpdateDockerParameter(id, dockerParamDto);
+                return result != null ? Results.Ok(result) : Results.NotFound();
+            });
+        app.MapDelete("/DeleteDockerParameter/{id:int}", async (int id, IDockerConfigsService _dockerConfigsService) =>
+        {
+            var result = await _dockerConfigsService.DeleteDockerParameter(id);
+            return result ? Results.NoContent() : Results.NotFound();
+        });
+        app.MapGet("/GetDockerFolderMountsList/{id:int}",
+            async (int DockerConfigId, IDockerConfigsService _dockerConfigsService) =>
+            {
+                var result = await _dockerConfigsService.GetDockerFolderMountsList(DockerConfigId);
+                return Results.Ok(result);
+            });
+        app.MapGet("/GetDockerFolderMounts/{id:int}", async (int id, IDockerConfigsService _dockerConfigsService) =>
+        {
+            var result = await _dockerConfigsService.GetDockerFolderMounts(id);
+            return result != null ? Results.Ok(result) : Results.NotFound();
+        });
+
+        app.MapPost("/AddDockerFolderMounts",
+            async (DockerFolderMountsDto dockerFolderMountsDto, IDockerConfigsService _dockerConfigsService) =>
+            {
+                var result = await _dockerConfigsService.AddDockerFolderMounts(dockerFolderMountsDto);
+                return Results.Created($"/GetDockerFolderMounts/{result!.Id}", result);
+            });
+        app.MapPut("/UpdateDockerFolderMounts/{id:int}", async (int id, DockerFolderMountsDto dockerFolderMountsDto,
+            IDockerConfigsService _dockerConfigsService) =>
+        {
+            var result = await _dockerConfigsService.UpdateDockerFolderMounts(id, dockerFolderMountsDto);
+            return result != null ? Results.Ok(result) : Results.NotFound();
+        });
+        app.MapDelete("/DeleteDockerFolderMounts/{id:int}",
+            async (int id, IDockerConfigsService _dockerConfigsService) =>
+            {
+                var result = await _dockerConfigsService.DeleteDockerFolderMounts(id);
+                return result ? Results.NoContent() : Results.NotFound();
+            });
+        
+        
         return app;
     }
 }
